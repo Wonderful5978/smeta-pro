@@ -1,0 +1,21 @@
+{
+  "name": "Смета-Про",
+  "short_name": "Смета-Про",
+  "description": "Генератор смет и коммерческих предложений для подрядчиков",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14110E",
+  "theme_color": "#EA580C",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"]
+}

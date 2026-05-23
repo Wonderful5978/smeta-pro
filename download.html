@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Скачать Смета-Про</title>
+<meta name="description" content="Установи Смета-Про на iPhone, Android или Windows. Без магазинов приложений.">
+<link rel="icon" type="image/svg+xml" href="./app/icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #14110E;
+  --panel: #1E1A16;
+  --panel-2: #272118;
+  --line: #3A322A;
+  --ink: #F5F1EA;
+  --ink-2: #B8AE9F;
+  --ink-3: #8A7F6E;
+  --accent: #EA580C;
+  --accent-2: #F59E0B;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Onest', sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; line-height: 1.55; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+.top { position: sticky; top: 0; background: rgba(20,17,14,0.85); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 14px 0; z-index: 10; }
+.top .wrap { display: flex; align-items: center; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 10px; margin-right: auto; font-weight: 700; }
+.logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 9px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 140ms; }
+.btn:hover { background: #2F2820; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: #F2640F; }
+
+.hero { padding: 60px 0 30px; text-align: center; }
+h1 { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 14px; }
+.lead { color: var(--ink-2); font-size: 17px; max-width: 600px; margin: 0 auto; }
+
+.options { padding: 30px 0 80px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+.option { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 32px; }
+.option-head { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+.option-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: var(--panel-2); flex-shrink: 0; }
+.option-title { flex: 1; }
+.option-title h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.option-title .platform { color: var(--ink-3); font-size: 13px; margin-top: 2px; }
+.option-best { display: inline-block; padding: 4px 11px; background: rgba(245,158,11,0.15); color: var(--accent-2); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.variant { padding: 18px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; }
+.variant:last-child { margin-bottom: 0; }
+.variant-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+.variant-head h3 { font-size: 16px; font-weight: 700; }
+.variant-head .label { font-size: 12px; color: var(--ink-3); padding: 3px 10px; background: rgba(234,88,12,0.1); border: 1px solid rgba(234,88,12,0.2); border-radius: 6px; }
+.variant ol { padding-left: 22px; color: var(--ink-2); font-size: 14px; }
+.variant ol li { padding: 4px 0; }
+.variant ol li b { color: var(--ink); font-weight: 600; }
+.variant .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.note { font-size: 13px; color: var(--ink-3); padding: 10px 14px; background: rgba(234,88,12,0.06); border: 1px solid rgba(234,88,12,0.15); border-radius: 8px; margin-top: 12px; }
+.warn { font-size: 13px; color: var(--ink-3); padding: 10px 14px; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; margin-top: 12px; }
+.warn b { color: var(--accent-2); }
+
+footer { padding: 30px 0; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 13px; text-align: center; }
+
+@media (max-width: 720px) {
+  h1 { font-size: 32px; }
+  .option { padding: 22px; }
+  .option-head { gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./"><span class="logo-mark">С</span> Смета-Про</a>
+    <a class="btn" href="./">← На главную</a>
+    <a class="btn btn-primary" href="./app/" target="_blank">Демо</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Скачать Смета-Про</h1>
+    <p class="lead">Выбери своё устройство. Установка занимает 30 секунд, никакие магазины приложений не нужны.</p>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="options">
+
+    <!-- ===== iPHONE ===== -->
+    <div class="option">
+      <div class="option-head">
+        <div class="option-icon">📱</div>
+        <div class="option-title">
+          <h2>iPhone / iPad</h2>
+          <div class="platform">iOS · через Safari</div>
+        </div>
+      </div>
+
+      <div class="variant">
+        <div class="variant-head">
+          <h3>Установка на главный экран</h3>
+          <span class="label">единственный способ на iOS</span>
+        </div>
+        <ol>
+          <li>Открой эту страницу в <b>Safari</b> (не Chrome — Apple не даёт другим браузерам ставить приложения)</li>
+          <li>Перейди в <a href="./app/" style="color:var(--accent-2)"><b>приложение</b></a></li>
+          <li>Внизу экрана нажми кнопку <b>«Поделиться»</b> (квадрат со стрелкой вверх)</li>
+          <li>Прокрути меню вниз → выбери <b>«На экран Домой»</b></li>
+          <li>Подтверди название «Смета-Про» → <b>«Добавить»</b></li>
+          <li>Готово — иконка появилась на рабочем столе, открывается как обычное приложение, работает оффлайн</li>
+        </ol>
+        <div class="warn"><b>Важно:</b> только Safari. В Chrome на iPhone этой функции нет — это ограничение Apple, а не наше.</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="./app/">Открыть приложение →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ANDROID ===== -->
+    <div class="option">
+      <div class="option-head">
+        <div class="option-icon">🤖</div>
+        <div class="option-title">
+          <h2>Android</h2>
+          <div class="platform">Два варианта — выбери удобный</div>
+        </div>
+      </div>
+
+      <div class="variant">
+        <div class="variant-head">
+          <h3>Вариант 1 — Установка через Chrome</h3>
+          <span class="label">рекомендуется</span>
+        </div>
+        <ol>
+          <li>Открой эту страницу в <b>Chrome</b> на телефоне</li>
+          <li>Перейди в <a href="./app/" style="color:var(--accent-2)"><b>приложение</b></a></li>
+          <li>Chrome предложит <b>«Установить приложение»</b> — нажми «Установить»</li>
+          <li>Если предложения нет — открой меню (⋮ справа сверху) → <b>«Установить приложение»</b> / «Добавить на главный экран»</li>
+          <li>Иконка появится на рабочем столе → открывается как обычное приложение</li>
+        </ol>
+        <div class="note">Размер: ~0,5 МБ. После первого запуска работает оффлайн.</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="./app/">Открыть приложение →</a>
+        </div>
+      </div>
+
+      <div class="variant">
+        <div class="variant-head">
+          <h3>Вариант 2 — Скачать APK-файл</h3>
+          <span class="label">для тех, кто привык</span>
+        </div>
+        <ol>
+          <li>Скачай файл <b>smeta-pro.apk</b></li>
+          <li>Открой его в файловом менеджере → подтверди установку</li>
+          <li>Android спросит: <b>«Разрешить установку из неизвестных источников»</b> — разреши (это обычное предупреждение для приложений не из Play Market)</li>
+          <li>Готово — приложение появилось в списке</li>
+        </ol>
+        <div class="warn"><b>Предупреждение Android о «неизвестном источнике»</b> — это нормально. Мы не платим Google $25/год за подпись, поэтому APK не подписан их сертификатом. Файл безопасен, проверь хэш-сумму ниже.</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="./downloads/smeta-pro.apk" download>⬇️ Скачать APK (скоро)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WINDOWS ===== -->
+    <div class="option">
+      <div class="option-head">
+        <div class="option-icon">💻</div>
+        <div class="option-title">
+          <h2>Windows</h2>
+          <div class="platform">Windows 10 · 11 · Mac · Linux</div>
+        </div>
+      </div>
+
+      <div class="variant">
+        <div class="variant-head">
+          <h3>Вариант 1 — Установить как приложение через Chrome / Edge</h3>
+          <span class="label">проще всего</span>
+        </div>
+        <ol>
+          <li>Открой <a href="./app/" style="color:var(--accent-2)"><b>приложение</b></a> в Chrome или Edge</li>
+          <li>В правой части адресной строки → иконка <b>«Установить»</b> (квадратик со стрелкой)</li>
+          <li>Нажми → подтверди → ярлык появится в меню «Пуск» и на рабочем столе</li>
+          <li>Запускается как обычная программа, без браузера, работает оффлайн</li>
+        </ol>
+        <div class="actions">
+          <a class="btn btn-primary" href="./app/" target="_blank">Открыть приложение →</a>
+        </div>
+      </div>
+
+      <div class="variant">
+        <div class="variant-head">
+          <h3>Вариант 2 — Скачать ZIP-архив</h3>
+          <span class="label">портативная версия</span>
+        </div>
+        <ol>
+          <li>Скачай <b>smeta-pro-win.zip</b></li>
+          <li>Распакуй в любую папку (например, на рабочий стол)</li>
+          <li>Двойной клик на <b>Запустить.bat</b> — приложение откроется в Chrome как отдельное окно</li>
+          <li>Можно создать ярлык на рабочем столе: ПКМ по .bat → <b>«Создать ярлык»</b></li>
+        </ol>
+        <div class="note">Работает на любом компьютере с Chrome / Edge / другим Chromium-браузером. Все твои данные хранятся в этой папке.</div>
+        <div class="actions">
+          <a class="btn btn-primary" href="./downloads/smeta-pro-win.zip" download>⬇️ Скачать ZIP</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 Смета-Про · <a href="./" style="color:var(--accent-2)">На главную</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
