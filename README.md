@@ -27,9 +27,9 @@ site/
 
 | Кому | Какой URL давать |
 |---|---|
-| **Случайный посетитель сайта** | `https://wonderful5978.github.io/smeta-pro/` (лендинг) |
-| **«Хочу попробовать перед покупкой»** | `https://wonderful5978.github.io/smeta-pro/demo/` |
-| **После оплаты (личным письмом)** | `https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/install.html` |
+| **Случайный посетитель сайта** | `https://smeta-pro.pages.dev/` (лендинг) |
+| **«Хочу попробовать перед покупкой»** | `https://smeta-pro.pages.dev/demo/` |
+| **После оплаты (личным письмом)** | `https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html` |
 
 ## Шаблон письма после оплаты
 
@@ -39,15 +39,15 @@ site/
 Спасибо за покупку Смета-Про. Вот всё что нужно для установки:
 
 🔗 Твоя персональная страница установки:
-https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/install.html
+https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html
 
 Там есть инструкции для iPhone, Android и Windows.
 Сохрани эту ссылку — отсюда же будешь качать обновления.
 
 Прямые ссылки на файлы (если нужны):
-• Приложение в браузере: https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/
-• Android APK: https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/files/smeta-pro.apk
-• Windows ZIP: https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/files/smeta-pro-win.zip
+• Приложение в браузере: https://smeta-pro.pages.dev/r2026-fkx8m9q/
+• Android APK: https://smeta-pro.pages.dev/r2026-fkx8m9q/files/smeta-pro.apk
+• Windows ZIP: https://smeta-pro.pages.dev/r2026-fkx8m9q/files/smeta-pro-win.zip
 
 Если что-то не получится — отвечай на это письмо, помогу.
 ```
@@ -87,7 +87,7 @@ https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/install.html
 ⚠️ **APK сгенерирован для URL `/app/`** — после переезда папки `app/` → `r2026-fkx8m9q/` старый APK будет показывать 404. Нужно пересобрать через PWABuilder с URL:
 
 ```
-https://wonderful5978.github.io/smeta-pro/r2026-fkx8m9q/
+https://smeta-pro.pages.dev/r2026-fkx8m9q/
 ```
 
 Полная инструкция: `../_tools/HOW-TO-UPDATE-APK.md`.
