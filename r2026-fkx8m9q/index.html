@@ -231,6 +231,29 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .profile-menu-restore { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-3); background: var(--panel-2); border-radius: 8px; margin-top: 6px; cursor: pointer; border: 1px solid var(--line-solid); }
 .profile-menu-restore:hover { color: var(--accent-2); border-color: var(--accent); }
 
+/* ===== БАННЕР ВОССТАНОВЛЕНИЯ ЧЕРНОВИКА ===== */
+.draft-banner { background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.45); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.draft-banner.hidden { display: none; }
+.draft-banner-icon { font-size: 22px; }
+.draft-banner-text { flex: 1; min-width: 180px; }
+.draft-banner-text .t { font-size: 14px; font-weight: 600; color: #DDD6FE; }
+.draft-banner-text .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.draft-banner-actions { display: flex; gap: 8px; }
+
+/* ===== МЕНЮ НЕДАВНИХ ===== */
+.recent-menu { position: relative; }
+.recent-menu-list { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--line-solid); border-radius: 12px; padding: 6px; min-width: 320px; max-width: 420px; max-height: 460px; overflow-y: auto; z-index: 60; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6); }
+.recent-menu.open .recent-menu-list { display: block; }
+.recent-item { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; background: transparent; border: none; color: var(--ink); font-family: inherit; cursor: pointer; width: 100%; text-align: left; }
+.recent-item:hover { background: var(--panel-2); }
+.recent-item .r-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.recent-item .r-num { font-size: 13px; font-weight: 700; }
+.recent-item .r-total { font-size: 13px; font-weight: 600; color: var(--accent-2); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.recent-item .r-meta { font-size: 11px; color: var(--ink-3); }
+.recent-item.empty { color: var(--ink-3); text-align: center; cursor: default; padding: 20px; font-size: 13px; }
+.recent-item.empty:hover { background: transparent; }
+.recent-divider { height: 1px; background: var(--line-solid); margin: 4px 6px; }
+
 /* ===== ПАМЯТЬ ЦЕН ===== */
 .learned-bar { background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
 .learned-bar.empty { display: none; }
@@ -300,6 +323,10 @@ td.cell-price-wrap { position: relative; }
     </div>
     <button class="btn" onclick="exportJSON()"><span class="btn-icon">💾</span> Сохранить</button>
     <button class="btn" onclick="document.getElementById('importFile').click()"><span class="btn-icon">📂</span> Загрузить</button>
+    <div class="recent-menu" id="recentMenu">
+      <button class="btn" onclick="toggleRecentMenu()"><span class="btn-icon">🕒</span> Недавние ▾</button>
+      <div class="recent-menu-list" id="recentMenuList"></div>
+    </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
     <input type="file" id="importProfileFile" accept=".json" style="display:none" onchange="importProfile(event)">
     <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
@@ -338,6 +365,18 @@ td.cell-price-wrap { position: relative; }
   <div class="niche-bar no-print" id="nicheBar"></div>
 
   <div class="hint no-print">💡 <b>Совет:</b> при печати выбери «Сохранить как PDF» и убери колонтитулы (Колонтитулы → выкл). Свёрстано под A4.</div>
+
+  <div class="draft-banner hidden no-print" id="draftBanner">
+    <span class="draft-banner-icon">💾</span>
+    <div class="draft-banner-text">
+      <div class="t">Найден несохранённый черновик</div>
+      <div class="d" id="draftBannerInfo"></div>
+    </div>
+    <div class="draft-banner-actions">
+      <button class="btn btn-primary" onclick="restoreDraft()">↩ Восстановить</button>
+      <button class="btn" onclick="dismissDraft()">Начать новую</button>
+    </div>
+  </div>
 
   <div class="panel no-print">
     <div class="panel-head"><span class="num">1</span><h2>Ваша компания</h2></div>
@@ -1389,6 +1428,7 @@ function renderPresets() {
 function addPresetSection(cat) {
   const presets = NICHES[currentNiche].presets[cat];
   state.sections.push({ id: id(), title: cat, items: presets.map(p => ({ id: id(), name: p.name, unit: p.unit, qty: 1, price: p.price })) });
+  markDraftDirty();
   render();
 }
 
@@ -1523,6 +1563,7 @@ function renderSections() {
 function upd(si, ii, key, v) {
   if (key === 'qty' || key === 'price') v = parseFloat(v.toString().replace(',', '.')) || 0;
   state.sections[si].items[ii][key] = v;
+  markDraftDirty();
   // ПАМЯТЬ ЦЕН:
   // 1) если меняем цену вручную (и она ненулевая) — запоминаем для этой работы
   if (key === 'price' && v > 0) {
@@ -1547,11 +1588,11 @@ function upd(si, ii, key, v) {
   renderDocAndTotals();
   if (key === 'qty' || key === 'price' || nameChanged) renderSections();
 }
-function updSection(si, v) { state.sections[si].title = v; renderDocAndTotals(); }
-function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); render(); }
-function delRow(si, ii) { state.sections[si].items.splice(ii, 1); render(); }
-function addSection() { state.sections.push({ id: id(), title: "Новый раздел", items: [{ id: id(), name: "", unit: "шт", qty: 1, price: 0 }] }); render(); }
-function delSection(si) { state.sections.splice(si, 1); render(); }
+function updSection(si, v) { state.sections[si].title = v; markDraftDirty(); renderDocAndTotals(); }
+function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); markDraftDirty(); render(); }
+function delRow(si, ii) { state.sections[si].items.splice(ii, 1); markDraftDirty(); render(); }
+function addSection() { state.sections.push({ id: id(), title: "Новый раздел", items: [{ id: id(), name: "", unit: "шт", qty: 1, price: 0 }] }); markDraftDirty(); render(); }
+function delSection(si) { state.sections.splice(si, 1); markDraftDirty(); render(); }
 function dupSection(si) {
   const orig = state.sections[si];
   const copy = {
@@ -1560,11 +1601,13 @@ function dupSection(si) {
     items: orig.items.map(it => ({ id: id(), name: it.name, unit: it.unit, qty: it.qty, price: it.price })),
   };
   state.sections.splice(si + 1, 0, copy);
+  markDraftDirty();
   render();
 }
 function clearAll() {
   if (!confirm('Удалить ВСЕ разделы и работы? Действие нельзя отменить.\n\nСохрани документ в JSON, если он нужен.')) return;
   state.sections = [];
+  clearDraft();
   render();
 }
 
@@ -1822,6 +1865,8 @@ function exportXLSX() {
 // ===== EXPORT / IMPORT =====
 function exportJSON() {
   learnFromCurrentDoc();
+  addToRecent();   // ← сохраняем в недавние
+  clearDraft();    // ← после явного сохранения draft не нужен
   const data = {
     niche: currentNiche,
     company: { name: val('c_name'), slogan: val('c_slogan'), phone: val('c_phone'), email: val('c_email'), inn: val('c_inn') },
@@ -1861,6 +1906,7 @@ function importJSON(e) {
       const incoming = (typeof d.docCounter === 'number' ? d.docCounter : parseCounterFromNumber(d.client && d.client.number));
       state.docCounter = Math.max(state.docCounter || 0, incoming || 0);
       if (d.theme) applyTheme(d.theme);
+      clearDraft(); // загрузили чужой документ — наш черновик больше не актуален
       render();
     } catch (err) { alert('Не удалось загрузить файл: ' + err.message); }
   };
@@ -2036,6 +2082,196 @@ function closeProfileMenu() {
 }
 document.addEventListener('click', (e) => {
   const m = document.getElementById('profileMenu');
+  if (m && !m.contains(e.target)) m.classList.remove('open');
+});
+
+// ===== АВТОСОХРАНЕНИЕ ЧЕРНОВИКА + НЕДАВНИЕ СМЕТЫ =====
+const DRAFT_KEY = PROFILE_KEY.replace('-profile-', '-draft-');
+const RECENT_KEY = PROFILE_KEY.replace('-profile-', '-recent-');
+const MAX_RECENT = 10;
+let draftDirty = false;
+let pendingDraftToOffer = null; // если есть — показываем баннер восстановления
+
+// Собрать снапшот текущей сметы (без company/logo — они в профиле)
+function collectDocSnapshot() {
+  return {
+    niche: currentNiche,
+    docType: val('d_type'),
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay') },
+    settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
+    terms: val('terms'),
+    sections: state.sections,
+    docCounter: state.docCounter || 0,
+    savedAt: Date.now(),
+  };
+}
+
+// Применить снапшот в поля приложения
+function applyDocSnapshot(d) {
+  if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
+  if (d.docType) setVal('d_type', d.docType);
+  if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
+  if (d.settings) { setVal('s_discount', d.settings.discount); setVal('s_contingency', d.settings.contingency); setVal('s_vat', d.settings.vat); state.vatOn = !!d.settings.vatOn; document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn); document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none'; document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none'; }
+  if (d.terms) setVal('terms', d.terms);
+  if (Array.isArray(d.sections)) state.sections = d.sections;
+  if (typeof d.docCounter === 'number') state.docCounter = Math.max(state.docCounter || 0, d.docCounter);
+}
+
+// Содержит ли снапшот реальную работу пользователя (не пустую болванку из ниши)?
+function snapshotHasWork(d) {
+  if (!d || !Array.isArray(d.sections)) return false;
+  // Считаем что у пользователя реально что-то есть, если в сметах есть хотя бы одна работа с qty*price > 0
+  for (const s of d.sections) {
+    for (const it of (s.items || [])) {
+      if (it.name && it.qty > 0 && it.price > 0) return true;
+    }
+  }
+  return false;
+}
+
+function saveDraft() {
+  if (!draftDirty) return;
+  try {
+    const snap = collectDocSnapshot();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(snap));
+    draftDirty = false;
+  } catch (e) { /* QuotaExceeded — игнорим, основная работа не страдает */ }
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+// Помечаем что данные изменились — следующий autosave подхватит
+function markDraftDirty() { draftDirty = true; }
+
+// Запускаем периодический autosave
+setInterval(saveDraft, 5000);
+// Перед закрытием вкладки — сохраняем сразу
+window.addEventListener('beforeunload', () => { if (draftDirty) saveDraft(); });
+
+// Показать баннер если есть несохранённый черновик
+function maybeShowDraftBanner() {
+  const draft = loadDraft();
+  if (!draft || !snapshotHasWork(draft)) { clearDraft(); return; }
+  pendingDraftToOffer = draft;
+  const banner = document.getElementById('draftBanner');
+  const info = document.getElementById('draftBannerInfo');
+  if (!banner || !info) return;
+  const ago = humanTimeAgo(draft.savedAt);
+  const sectionsCount = (draft.sections || []).length;
+  let workCount = 0;
+  (draft.sections || []).forEach(s => { (s.items || []).forEach(it => { if (it.name) workCount++; }); });
+  info.textContent = `${draft.client?.number || 'Без номера'} · ${sectionsCount} разделов · ${workCount} позиций · сохранено ${ago}`;
+  banner.classList.remove('hidden');
+}
+function restoreDraft() {
+  if (!pendingDraftToOffer) { document.getElementById('draftBanner').classList.add('hidden'); return; }
+  applyDocSnapshot(pendingDraftToOffer);
+  pendingDraftToOffer = null;
+  document.getElementById('draftBanner').classList.add('hidden');
+  render();
+}
+function dismissDraft() {
+  pendingDraftToOffer = null;
+  clearDraft();
+  document.getElementById('draftBanner').classList.add('hidden');
+}
+function humanTimeAgo(ts) {
+  const sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 60) return `${sec} сек назад`;
+  if (sec < 3600) return `${Math.floor(sec / 60)} мин назад`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)} ч назад`;
+  return `${Math.floor(sec / 86400)} дн назад`;
+}
+
+// ===== НЕДАВНИЕ СМЕТЫ =====
+function loadRecent() {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function saveRecent(list) {
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch (e) {}
+}
+// Добавить текущую смету в список недавних (вызывается при экспорте JSON и при сознательном переключении документа)
+function addToRecent() {
+  const snap = collectDocSnapshot();
+  if (!snapshotHasWork(snap)) return;
+  const c = calc();
+  const workCount = snap.sections.reduce((a, s) => a + (s.items || []).filter(it => it.name).length, 0);
+  const entry = {
+    id: 'rec-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    number: snap.client.number || 'Без номера',
+    clientName: snap.client.name || '',
+    date: snap.client.date || '',
+    total: c.total,
+    workCount,
+    sectionsCount: snap.sections.length,
+    savedAt: Date.now(),
+    snapshot: snap,
+  };
+  let list = loadRecent();
+  // Если есть запись с тем же номером — заменяем
+  list = list.filter(r => r.number !== entry.number);
+  list.unshift(entry);
+  if (list.length > MAX_RECENT) list = list.slice(0, MAX_RECENT);
+  saveRecent(list);
+  renderRecentMenu();
+}
+function renderRecentMenu() {
+  const ml = document.getElementById('recentMenuList');
+  if (!ml) return;
+  const list = loadRecent();
+  if (!list.length) {
+    ml.innerHTML = '<div class="recent-item empty">Пока нет недавних смет.<br><span style="font-size:11px">Появятся после первого «💾 Сохранить»</span></div>';
+    return;
+  }
+  ml.innerHTML = list.map(r => `
+    <button class="recent-item" onclick="loadRecentItem('${r.id}')">
+      <div class="r-top">
+        <span class="r-num">${esc(r.number)}</span>
+        <span class="r-total">${fmt(r.total)}</span>
+      </div>
+      <div class="r-meta">${esc(r.clientName)} · ${esc(r.date)} · ${r.workCount} позиций · ${humanTimeAgo(r.savedAt)}</div>
+    </button>
+  `).join('') + `<div class="recent-divider"></div><button class="recent-item" style="text-align:center;color:var(--ink-3);font-size:12px" onclick="clearAllRecent()">🗑 Очистить список</button>`;
+}
+function loadRecentItem(id) {
+  const list = loadRecent();
+  const item = list.find(r => r.id === id);
+  if (!item) return;
+  if (snapshotHasWork(collectDocSnapshot())) {
+    if (!confirm('Загрузить смету «' + item.number + '»? Текущая работа сохранится в недавних (если в ней что-то есть).')) return;
+    addToRecent(); // сохраняем текущую перед заменой
+  }
+  applyDocSnapshot(item.snapshot);
+  closeRecentMenu();
+  clearDraft(); // загруженная смета не считается черновиком
+  render();
+}
+function clearAllRecent() {
+  if (!confirm('Удалить весь список недавних смет?')) return;
+  saveRecent([]);
+  renderRecentMenu();
+  closeRecentMenu();
+}
+function toggleRecentMenu() {
+  renderRecentMenu();
+  document.getElementById('recentMenu').classList.toggle('open');
+}
+function closeRecentMenu() {
+  document.getElementById('recentMenu').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('recentMenu');
   if (m && !m.contains(e.target)) m.classList.remove('open');
 });
 
@@ -2358,9 +2594,19 @@ function finishWizard(skipped) {
   }
   // Привязываем автосохранение профиля к полям
   watchProfileFields();
+  // Привязываем markDraftDirty к полям клиента, настроек и условий
+  ['cl_name','cl_object','cl_number','cl_date','cl_valid','cl_prepay','s_discount','s_contingency','s_vat','terms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', markDraftDirty);
+  });
+  const dType = document.getElementById('d_type');
+  if (dType) dType.addEventListener('change', markDraftDirty);
   renderLearnedBar();
   renderTemplatesBar();
+  renderRecentMenu();
   renderDocAndTotals();
+  // Проверяем есть ли черновик от прошлого раза
+  maybeShowDraftBanner();
   // Если не настраивали — запускаем визард
   if (!loaded || !profile.configured) startWizard(false);
 })();
