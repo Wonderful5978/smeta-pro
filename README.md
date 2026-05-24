@@ -17,8 +17,7 @@ site/
 │   ├── install.html            ← страница «Спасибо за покупку + инструкции»
 │   ├── manifest.json, sw.js, icons/
 │   └── files/
-│       ├── smeta-pro.apk       ← Android (подписан постоянным keystore)
-│       └── smeta-pro-win.zip   ← Windows
+│       └── smeta-pro.apk       ← Android (подписан постоянным keystore)
 ├── .gitignore
 └── README.md
 ```
@@ -47,7 +46,7 @@ https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html
 Прямые ссылки на файлы (если нужны):
 • Приложение в браузере: https://smeta-pro.pages.dev/r2026-fkx8m9q/
 • Android APK: https://smeta-pro.pages.dev/r2026-fkx8m9q/files/smeta-pro.apk
-• Windows ZIP: https://smeta-pro.pages.dev/r2026-fkx8m9q/files/smeta-pro-win.zip
+(Windows / Mac / Linux — устанавливается прямо из браузера Chrome/Edge как PWA, см. install.html)
 
 Если что-то не получится — отвечай на это письмо, помогу.
 ```
