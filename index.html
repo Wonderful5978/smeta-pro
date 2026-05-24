@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="./app/icons/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #14110E;
@@ -79,6 +79,27 @@ h2 { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 
 .price-list li { padding: 7px 0; padding-left: 26px; position: relative; color: var(--ink-2); font-size: 14px; list-style: none; }
 .price-list li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-2); font-weight: 700; }
 
+/* BUY */
+.buy-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+.buy-step { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px; position: relative; }
+.buy-num { width: 38px; height: 38px; background: var(--accent); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.buy-step h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.buy-step p { color: var(--ink-2); font-size: 14px; margin-bottom: 14px; }
+.buy-step p b { color: var(--ink); font-weight: 600; }
+.buy-hint { font-size: 12px !important; color: var(--ink-3) !important; margin-top: 12px; margin-bottom: 0 !important; padding-top: 12px; border-top: 1px solid var(--line); }
+.buy-info { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 4px; }
+.buy-info-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; }
+.buy-info-row .buy-info-l { color: var(--ink-3); }
+.buy-info-row .buy-info-v { color: var(--ink); font-weight: 500; }
+.buy-info-row .mono { font-family: 'JetBrains Mono', monospace; color: var(--accent-2); font-size: 14px; }
+.buy-mail { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(234,88,12,0.12); border: 1px solid rgba(234,88,12,0.3); border-radius: 10px; color: var(--accent-2); font-weight: 600; font-size: 14px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+.buy-mail:hover { background: rgba(234,88,12,0.18); }
+.buy-list { list-style: none; padding: 0; }
+.buy-list li { color: var(--ink-2); font-size: 14px; padding: 5px 0; padding-left: 22px; position: relative; }
+.buy-list li::before { content: "→"; position: absolute; left: 0; color: var(--accent-2); font-weight: 700; }
+.buy-trust { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: center; padding: 24px; background: var(--panel-2); border-radius: 14px; }
+.buy-trust-item { color: var(--ink-2); font-size: 14px; font-weight: 500; }
+
 /* FAQ */
 .faq { max-width: 720px; margin: 0 auto; }
 .faq details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
@@ -95,7 +116,7 @@ footer a { color: var(--accent-2); }
 
 @media (max-width: 720px) {
   h1 { font-size: 38px; }
-  .features { grid-template-columns: 1fr; }
+  .features, .buy-steps { grid-template-columns: 1fr; }
   .hero { padding: 50px 0 40px; }
   section { padding: 50px 0; }
 }
@@ -107,7 +128,7 @@ footer a { color: var(--accent-2); }
   <div class="wrap">
     <a class="logo" href="./"><span class="logo-mark">С</span> Смета-Про</a>
     <a class="btn" href="./app/" target="_blank">Демо</a>
-    <a class="btn btn-primary" href="./download.html">Скачать</a>
+    <a class="btn btn-primary" href="#buy">Купить</a>
   </div>
 </header>
 
@@ -121,7 +142,7 @@ footer a { color: var(--accent-2); }
     </p>
     <div class="cta-row">
       <a class="btn btn-primary btn-big" href="./app/" target="_blank">🚀 Попробовать бесплатно</a>
-      <a class="btn btn-big" href="./download.html">⬇️ Скачать на устройство</a>
+      <a class="btn btn-big" href="#buy">💳 Купить за 1990 ₽</a>
     </div>
     <div class="proofs">
       <div class="proof"><span class="ic">✓</span> Без регистрации</div>
@@ -212,7 +233,65 @@ footer a { color: var(--accent-2); }
         <li>Работает оффлайн навсегда</li>
         <li>Обновления баз расценок в течение года</li>
       </ul>
-      <a class="btn btn-primary btn-big" href="./download.html" style="display:block">⬇️ Перейти к скачиванию</a>
+      <a class="btn btn-primary btn-big" href="#buy" style="display:block">💳 Купить за 1990 ₽</a>
+    </div>
+  </div>
+</section>
+
+<section id="buy">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Как купить</h2>
+      <p class="sub">Три шага. Без регистраций, личных кабинетов и подписок.</p>
+    </div>
+    <div class="buy-steps">
+      <div class="buy-step">
+        <div class="buy-num">1</div>
+        <h3>Переведи 1990 ₽ через СБП</h3>
+        <p>В любом банковском приложении выбери <b>СБП → перевод по номеру телефона</b>. Если в твоём банке есть «Перевод по СБП» в отдельном пункте — выбирай его, комиссии не будет.</p>
+        <div class="buy-info">
+          <div class="buy-info-row">
+            <span class="buy-info-l">Сумма</span>
+            <span class="buy-info-v"><b>1 990 ₽</b></span>
+          </div>
+          <div class="buy-info-row">
+            <span class="buy-info-l">Номер</span>
+            <span class="buy-info-v mono"><b>+7 (___) ___-__-__</b></span>
+          </div>
+          <div class="buy-info-row">
+            <span class="buy-info-l">Получатель</span>
+            <span class="buy-info-v">Дмитрий П.</span>
+          </div>
+        </div>
+        <p class="buy-hint">В комментарии к переводу укажи свой email — на него я пришлю файл.</p>
+      </div>
+
+      <div class="buy-step">
+        <div class="buy-num">2</div>
+        <h3>Пришли скрин чека</h3>
+        <p>Сделай скриншот успешного перевода и отправь его на почту:</p>
+        <a class="buy-mail" href="mailto:permyakov.d.a@icloud.com?subject=Оплата Смета-Про">📧 permyakov.d.a@icloud.com</a>
+        <p class="buy-hint">Можно прямо из приложения банка через «Поделиться → Почта».</p>
+      </div>
+
+      <div class="buy-step">
+        <div class="buy-num">3</div>
+        <h3>Получи файл и инструкции</h3>
+        <p>В течение нескольких часов (обычно — сразу) пришлю ответным письмом:</p>
+        <ul class="buy-list">
+          <li>Ссылку на скачивание полной версии</li>
+          <li>Инструкцию по установке на твоё устройство</li>
+          <li>Контакт для поддержки и сообщений об обновлениях</li>
+        </ul>
+        <p class="buy-hint">Если что-то не получилось с оплатой — напиши на тот же email, помогу.</p>
+      </div>
+    </div>
+
+    <div class="buy-trust">
+      <div class="buy-trust-item">✓ Без регистрации и подписок</div>
+      <div class="buy-trust-item">✓ Один раз заплатил — пользуешься всегда</div>
+      <div class="buy-trust-item">✓ Все обновления баз расценок в течение года — бесплатно</div>
+      <div class="buy-trust-item">✓ Не получится использовать — верну деньги</div>
     </div>
   </div>
 </section>
@@ -245,7 +324,15 @@ footer a { color: var(--accent-2); }
       </details>
       <details>
         <summary>Как происходит оплата?</summary>
-        <div class="answer">[Здесь укажи свой способ: ссылка на Boosty, ЮKassa, перевод по СБП на телефон, Telegram-бот и т.п.]</div>
+        <div class="answer">Через СБП (Система быстрых платежей) — переводом по номеру телефона. Это бесплатно и работает в любом российском банке. Подробная инструкция — в секции <a href="#buy" style="color:var(--accent-2)">«Как купить»</a> выше.</div>
+      </details>
+      <details>
+        <summary>Когда я получу файл после оплаты?</summary>
+        <div class="answer">Обычно в течение часа после того, как пришлёшь скрин чека на email. Если оплачиваешь ночью — утром. Если что-то задерживается — напиши, я отвечу.</div>
+      </details>
+      <details>
+        <summary>А если не подойдёт?</summary>
+        <div class="answer">Сначала попробуй демо — оно полнофункциональное, можно прямо сейчас сделать на нём смету и понять, подходит или нет. Если после покупки что-то критично не получится использовать — напиши на email, верну деньги.</div>
       </details>
     </div>
   </div>
@@ -254,7 +341,7 @@ footer a { color: var(--accent-2); }
 <footer>
   <div class="wrap">
     <p>© 2026 Смета-Про · Инструмент для подрядчиков</p>
-    <p>Связь: <a href="mailto:[твой email]">[твой email]</a> · <a href="tel:+7...">[твой телефон]</a></p>
+    <p>Связь: <a href="mailto:permyakov.d.a@icloud.com">permyakov.d.a@icloud.com</a></p>
   </div>
 </footer>
 
