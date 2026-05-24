@@ -1438,13 +1438,19 @@ function applyTheme(key) {
   r.setProperty('--doc-section-bg', t.section);
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
-  if (typeof captureProfileFromFields === 'function' && profile && profile.configured) captureProfileFromFields();
+}
+function setTheme(key) {
+  applyTheme(key);
+  if (profile && profile.configured) {
+    profile.theme = currentTheme;
+    saveProfile();
+  }
 }
 function renderThemePicker() {
   const el = document.getElementById('themePicker');
   if (!el) return;
   el.innerHTML = Object.entries(THEMES).map(([k, t]) =>
-    `<button class="theme-chip ${k === currentTheme ? 'active' : ''}" onclick="applyTheme('${k}')">
+    `<button class="theme-chip ${k === currentTheme ? 'active' : ''}" onclick="setTheme('${k}')">
        <span class="theme-swatch" style="background:${t.swatch}"></span>${t.name}
      </button>`
   ).join('');

@@ -1379,6 +1379,8 @@ const THEMES = {
   mono:   { name: "Чёрно-белый",   swatch: "#1A1714", accent: "#1A1714", section: "#F2F2F2", client: "#FAFAFA" },
 };
 let currentTheme = "orange";
+// Только применяет тему (CSS). Не сохраняет профиль — иначе при init
+// перетрёт только что загруженные данные пустыми полями (поля заполняются ПОСЛЕ applyTheme).
 function applyTheme(key) {
   const t = THEMES[key] || THEMES.orange;
   currentTheme = THEMES[key] ? key : "orange";
@@ -1387,15 +1389,20 @@ function applyTheme(key) {
   r.setProperty('--doc-section-bg', t.section);
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
-  // Сохраняем тему в профиль ТОЛЬКО если профиль уже настроен (configured=true).
-  // Иначе при первом запуске создастся пустой профиль и визард не покажется.
-  if (typeof captureProfileFromFields === 'function' && profile && profile.configured) captureProfileFromFields();
+}
+// Обёртка для UI: меняет тему + сохраняет в профиль (используется в themePicker, визарде)
+function setTheme(key) {
+  applyTheme(key);
+  if (profile && profile.configured) {
+    profile.theme = currentTheme;
+    saveProfile();
+  }
 }
 function renderThemePicker() {
   const el = document.getElementById('themePicker');
   if (!el) return;
   el.innerHTML = Object.entries(THEMES).map(([k, t]) =>
-    `<button class="theme-chip ${k === currentTheme ? 'active' : ''}" onclick="applyTheme('${k}')">
+    `<button class="theme-chip ${k === currentTheme ? 'active' : ''}" onclick="setTheme('${k}')">
        <span class="theme-swatch" style="background:${t.swatch}"></span>${t.name}
      </button>`
   ).join('');
