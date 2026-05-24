@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Смета-Про DEMO — попробуй перед покупкой</title>
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#EA580C">
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+<link rel="apple-touch-icon" href="./icons/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Смета-Про">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Генератор смет и коммерческих предложений для подрядчиков. 10 ниш, расчёт скидок/НДС/предоплаты, печать в PDF и экспорт в Excel.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #14110E;
+  --panel: #1E1A16;
+  --panel-2: #272118;
+  --line-solid: #3A322A;
+  --ink: #F5F1EA;
+  --ink-2: #B8AE9F;
+  --ink-3: #8A7F6E;
+  --accent: #EA580C;
+  --accent-soft: #EA580C22;
+  --accent-2: #F59E0B;
+  --doc-bg: #FFFFFF;
+  --doc-ink: #1A1714;
+  --doc-ink-2: #5A5249;
+  --doc-line: #E5E0D8;
+  --doc-accent: #EA580C;
+  --doc-section-bg: #F5F1EA;
+  --doc-client-bg: #FAF7F2;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Onest', sans-serif; background: var(--bg); color: var(--ink); font-feature-settings: "ss01"; -webkit-font-smoothing: antialiased; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.app { max-width: 1100px; margin: 0 auto; padding: 0 20px 80px; }
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(20, 17, 14, 0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line-solid); margin: 0 -20px 28px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand-mark { width: 36px; height: 36px; background: var(--accent); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.brand-name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+.brand-sub { font-size: 11px; color: var(--ink-3); }
+.btn { font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line-solid); background: var(--panel-2); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all 140ms ease; }
+.btn:hover { background: #2F2820; transform: translateY(-1px); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: #F2640F; }
+.btn-icon { font-size: 15px; }
+.intro { margin-bottom: 20px; }
+.intro h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
+.intro p { color: var(--ink-2); font-size: 15px; }
+
+/* NICHE SWITCHER */
+.niche-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.niche-tab {
+  font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px;
+  border-radius: 12px; border: 1px solid var(--line-solid); background: var(--panel);
+  color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  transition: all 140ms ease;
+}
+.niche-tab:hover { border-color: var(--accent); color: var(--ink); }
+.niche-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+.niche-tab .emoji { font-size: 17px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line-solid); border-radius: 18px; padding: 24px; margin-bottom: 20px; }
+.panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.panel-head h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.panel-head .num { width: 26px; height: 26px; background: var(--accent-soft); color: var(--accent-2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.field input, .field textarea, .field select { font-family: inherit; font-size: 14px; padding: 11px 13px; background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 10px; color: var(--ink); transition: border 140ms ease; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 70px; }
+.section-block { background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+.section-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #2A2319; }
+.section-title-input { font-family: inherit; font-size: 15px; font-weight: 700; background: transparent; border: none; color: var(--ink); flex: 1; padding: 4px 0; }
+.section-title-input:focus { outline: none; }
+.section-count { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-right: 4px; white-space: nowrap; }
+.section-sum { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; color: var(--accent-2); }
+.row-handle { width: 22px; text-align: center; color: var(--ink-3); cursor: grab; user-select: none; font-size: 14px; }
+.row-handle:active { cursor: grabbing; }
+tr.drag-over-top td { box-shadow: inset 0 2px 0 0 var(--accent); }
+tr.drag-over-bottom td { box-shadow: inset 0 -2px 0 0 var(--accent); }
+tr.dragging { opacity: 0.4; }
+table.items { width: 100%; border-collapse: collapse; }
+table.items th { text-align: left; font-size: 11px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 8px; border-bottom: 1px solid var(--line-solid); }
+table.items th.r { text-align: right; }
+table.items td { padding: 4px 6px; border-bottom: 1px solid #322a2010; }
+table.items input { font-family: inherit; font-size: 13px; width: 100%; padding: 8px; background: transparent; border: 1px solid transparent; border-radius: 7px; color: var(--ink); }
+table.items input:hover { background: #322a20; }
+table.items input:focus { outline: none; background: #322a20; border-color: var(--accent); }
+table.items input.num { font-family: 'JetBrains Mono', monospace; text-align: right; }
+.cell-sum { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-align: right; padding-right: 8px; color: var(--ink); white-space: nowrap; }
+.del-row { background: transparent; border: none; color: var(--ink-3); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+.del-row:hover { color: #F87171; background: #F8717118; }
+.section-foot { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+.mini-btn { font-family: inherit; font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line-solid); background: transparent; color: var(--ink-2); cursor: pointer; }
+.mini-btn:hover { background: #322a20; color: var(--ink); }
+.mini-btn.danger:hover { color: #F87171; border-color: #F8717140; }
+.presets-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.preset-chip { font-family: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 9999px; border: 1px solid var(--line-solid); background: var(--panel-2); color: var(--ink-2); cursor: pointer; }
+.preset-chip:hover { border-color: var(--accent); color: var(--accent-2); }
+.toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #322a2030; }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-row .label { flex: 1; }
+.toggle-row .label .t { font-size: 14px; font-weight: 500; }
+.toggle-row .label .d { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+.switch { width: 44px; height: 26px; background: var(--line-solid); border-radius: 9999px; position: relative; cursor: pointer; transition: background 160ms ease; flex-shrink: 0; border: none; }
+.switch.on { background: var(--accent); }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 9999px; transition: transform 160ms ease; }
+.switch.on::after { transform: translateX(18px); }
+.pct-input { width: 72px; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 8px; color: var(--ink); text-align: right; }
+.pct-input:focus { outline: none; border-color: var(--accent); }
+.totals-card { background: linear-gradient(135deg, #2A1F14 0%, var(--panel) 100%); border: 1px solid var(--accent-soft); }
+.total-line { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; font-size: 14px; }
+.total-line .v { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+.total-line.muted { color: var(--ink-2); }
+.total-line.grand { border-top: 1px solid var(--line-solid); margin-top: 8px; padding-top: 16px; font-size: 22px; font-weight: 700; }
+.total-line.grand .v { color: var(--accent-2); font-size: 26px; font-weight: 700; }
+.doc-wrap { margin-top: 40px; }
+.doc-label { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; text-align: center; }
+.document { background: var(--doc-bg); color: var(--doc-ink); border-radius: 14px; padding: 48px 52px; font-size: 13px; line-height: 1.5; box-shadow: 0 20px 60px -20px rgba(0,0,0,0.5); }
+.doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 3px solid var(--doc-accent); margin-bottom: 28px; }
+.doc-company-name { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: var(--doc-ink); }
+.doc-company-slogan { font-size: 13px; color: var(--doc-ink-2); margin-top: 2px; }
+.doc-company-contacts { font-size: 12px; color: var(--doc-ink-2); margin-top: 10px; line-height: 1.7; }
+.doc-meta { text-align: right; }
+.doc-type-badge { display: inline-block; background: var(--doc-accent); color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 12px; border-radius: 6px; }
+.doc-number { font-size: 20px; font-weight: 700; margin-top: 10px; }
+.doc-date { font-size: 12px; color: var(--doc-ink-2); margin-top: 2px; }
+.doc-client { background: var(--doc-client-bg); border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+.doc-client-item .l { font-size: 11px; color: var(--doc-ink-2); text-transform: uppercase; letter-spacing: 0.03em; }
+.doc-client-item .v { font-size: 14px; font-weight: 600; margin-top: 1px; }
+.doc-section { margin-bottom: 8px; }
+.doc-section-title { font-size: 14px; font-weight: 700; background: var(--doc-section-bg); padding: 9px 14px; border-radius: 7px; margin-bottom: 4px; }
+table.doc-table { width: 100%; border-collapse: collapse; }
+table.doc-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--doc-ink-2); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--doc-line); }
+table.doc-table th.r { text-align: right; }
+table.doc-table th.c { text-align: center; }
+table.doc-table td { font-size: 12.5px; padding: 8px 10px; border-bottom: 1px solid #F0EBE3; }
+table.doc-table td.r { text-align: right; font-family: 'JetBrains Mono', monospace; }
+table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monospace; }
+.doc-section-sum { text-align: right; font-size: 13px; font-weight: 700; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; }
+.doc-totals { margin-top: 20px; margin-left: auto; width: 320px; }
+.doc-total-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+.doc-total-line .v { font-family: 'JetBrains Mono', monospace; }
+.doc-total-line.grand { border-top: 2px solid var(--doc-accent); margin-top: 8px; padding-top: 12px; font-size: 17px; font-weight: 800; }
+.doc-total-line.grand .v { color: var(--doc-accent); }
+.doc-terms { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--doc-line); }
+.doc-terms-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--doc-ink-2); margin-bottom: 8px; }
+.doc-terms-text { font-size: 12px; color: var(--doc-ink-2); line-height: 1.7; white-space: pre-line; }
+.doc-footer { margin-top: 36px; display: flex; justify-content: space-between; align-items: flex-end; }
+.doc-sign-line { width: 180px; border-bottom: 1px solid var(--doc-ink); margin-top: 28px; margin-bottom: 4px; }
+.doc-sign-label { color: var(--doc-ink-2); font-size: 11px; }
+.hint { background: var(--accent-soft); border: 1px solid var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 20px; }
+.hint b { color: var(--accent-2); }
+
+/* LOGO */
+.logo-field { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--panel-2); border: 1px dashed var(--line-solid); border-radius: 12px; }
+.logo-preview { width: 72px; height: 72px; border-radius: 10px; background: #14110E; border: 1px solid var(--line-solid); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.logo-preview .empty { font-size: 11px; color: var(--ink-3); text-align: center; padding: 4px; }
+.logo-controls { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.logo-controls .label { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+.logo-controls .row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.input-with-btn { display: flex; gap: 6px; }
+.input-with-btn input { flex: 1; min-width: 0; }
+.input-with-btn .mini-btn { white-space: nowrap; flex-shrink: 0; }
+
+.theme-picker-wrap { grid-column: 1 / -1; padding-top: 6px; }
+.theme-picker-label { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-bottom: 8px; }
+.theme-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.theme-chip { display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line-solid); background: var(--panel-2); color: var(--ink-2); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 140ms ease; }
+.theme-chip:hover { border-color: var(--accent); color: var(--ink); }
+.theme-chip.active { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+.theme-swatch { width: 18px; height: 18px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+
+.doc-header-left { display: flex; align-items: flex-start; gap: 16px; }
+.doc-logo { width: 64px; height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.doc-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+@media print {
+  body { background: white; }
+  .topbar, .intro, .niche-bar, .panel, .doc-label, .no-print { display: none !important; }
+  .app { max-width: none; padding: 0; }
+  .doc-wrap { margin: 0; }
+  .document { box-shadow: none; border-radius: 0; padding: 0; }
+  @page { margin: 16mm; size: A4; }
+}
+@media (max-width: 720px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .doc-client { grid-template-columns: 1fr; }
+  .document { padding: 24px; }
+}
+
+/* ===== DEMO WATERMARK ===== */
+.demo-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(90deg, #EA580C 0%, #F59E0B 100%);
+  color: white;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+}
+.demo-bar a { color: white; text-decoration: underline; font-weight: 800; }
+.demo-bar a:hover { color: #FEF3C7; }
+.demo-bar .demo-emoji { font-size: 18px; }
+
+/* Подложка с водяным знаком на документе (видна на экране и в печати) */
+.document { position: relative; overflow: hidden; }
+.document::before {
+  content: "DEMO · купите за 1990 ₽";
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 92px;
+  font-weight: 800;
+  color: rgba(234, 88, 12, 0.08);
+  pointer-events: none;
+  z-index: 1;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+}
+.document > * { position: relative; z-index: 2; }
+
+/* Полоска внизу документа */
+.demo-footer-stamp {
+  margin-top: 28px;
+  padding: 14px 18px;
+  background: #FFF3E6;
+  border: 2px dashed #EA580C;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #7C2D12;
+  font-weight: 600;
+}
+.demo-footer-stamp b { color: #EA580C; font-size: 14px; }
+.demo-footer-stamp .small { display: block; margin-top: 4px; font-size: 11px; font-weight: 500; color: #92400E; }
+
+@media print {
+  .demo-bar { display: none !important; }
+  /* Усиленный водяной знак при печати — чтобы клиент сразу видел что это DEMO */
+  .document::before {
+    color: rgba(234, 88, 12, 0.18) !important;
+    font-size: 110px !important;
+  }
+  .demo-footer-stamp {
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+<div class="demo-bar no-print">
+  <span class="demo-emoji">🛒</span>
+  <span>Это <b>демо-версия</b>. Чтобы убрать водяной знак — <a href="../#buy">купи полную за 1990 ₽</a></span>
+</div>
+<div class="app">
+  <div class="topbar no-print">
+    <div class="brand">
+      <div class="brand-mark">📐</div>
+      <div><div class="brand-name">Смета-Про</div><div class="brand-sub">Генератор смет и КП · все ниши</div></div>
+    </div>
+    <button class="btn" onclick="exportJSON()"><span class="btn-icon">💾</span> Сохранить</button>
+    <button class="btn" onclick="document.getElementById('importFile').click()"><span class="btn-icon">📂</span> Загрузить</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
+    <button class="btn" id="installBtn" onclick="pwaInstall()" style="display:none"><span class="btn-icon">⬇️</span> Установить</button>
+    <button class="btn btn-primary" onclick="window.print()"><span class="btn-icon">📄</span> Печать в PDF</button>
+  </div>
+
+  <div class="intro no-print">
+    <h1>Генератор смет и КП</h1>
+    <p>Выбери нишу — расценки подставятся сами. Заполни поля → документ внизу обновится → «Печать в PDF».</p>
+  </div>
+
+  <div class="niche-bar no-print" id="nicheBar"></div>
+
+  <div class="hint no-print">💡 <b>Совет:</b> при печати выбери «Сохранить как PDF» и убери колонтитулы (Колонтитулы → выкл). Свёрстано под A4.</div>
+
+  <div class="panel no-print">
+    <div class="panel-head"><span class="num">1</span><h2>Ваша компания</h2></div>
+    <div class="grid-2">
+      <div class="logo-field">
+        <div class="logo-preview" id="logoPreview"><span class="empty">Лого<br>72×72</span></div>
+        <div class="logo-controls">
+          <span class="label">Логотип компании (PNG / JPG / SVG, до ~500 КБ)</span>
+          <div class="row">
+            <button class="mini-btn" onclick="document.getElementById('logoFile').click()">📤 Загрузить логотип</button>
+            <button class="mini-btn danger" id="logoRemoveBtn" onclick="removeLogo()" style="display:none">Удалить</button>
+            <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="loadLogo(event)">
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>Название</label><input id="c_name" oninput="render()"></div>
+      <div class="field"><label>Слоган / специализация</label><input id="c_slogan" oninput="render()"></div>
+      <div class="field"><label>Телефон</label><input id="c_phone" value="+7 (999) 123-45-67" oninput="render()"></div>
+      <div class="field"><label>Email / сайт</label><input id="c_email" value="example.ru" oninput="render()"></div>
+      <div class="field"><label>ИНН (необязательно)</label><input id="c_inn" value="" oninput="render()"></div>
+      <div class="field"><label>Тип документа</label>
+        <select id="d_type" onchange="render()">
+          <option value="Смета">Смета</option>
+          <option value="Коммерческое предложение" selected>Коммерческое предложение</option>
+        </select>
+      </div>
+      <div class="theme-picker-wrap">
+        <div class="theme-picker-label">Стиль документа (цвет акцента и фона)</div>
+        <div class="theme-picker" id="themePicker"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel no-print">
+    <div class="panel-head"><span class="num">2</span><h2>Клиент и объект</h2></div>
+    <div class="grid-3">
+      <div class="field"><label>Заказчик</label><input id="cl_name" value="Петров А. С." oninput="render()"></div>
+      <div class="field"><label id="lbl_object">Объект</label><input id="cl_object" oninput="render()"></div>
+      <div class="field"><label>Номер документа</label>
+        <div class="input-with-btn">
+          <input id="cl_number" oninput="render()">
+          <button class="mini-btn" onclick="nextDocNumber()" title="Подставить следующий номер">↻ Следующий</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:14px">
+      <div class="field"><label>Дата</label><input id="cl_date" oninput="render()"></div>
+      <div class="field"><label>Срок действия (дней)</label><input id="cl_valid" value="14" oninput="render()"></div>
+      <div class="field"><label>Предоплата (%)</label><input id="cl_prepay" value="50" oninput="render()"></div>
+    </div>
+  </div>
+
+  <div class="panel no-print">
+    <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
+    <div class="presets-bar" id="presetBar"></div>
+    <div id="sections"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn" onclick="addSection()"><span class="btn-icon">＋</span> Добавить раздел</button>
+      <button class="btn" onclick="clearAll()" style="margin-left:auto;color:#F87171;border-color:#F8717140"><span class="btn-icon">🗑</span> Очистить всё</button>
+    </div>
+  </div>
+
+  <div class="panel no-print">
+    <div class="panel-head"><span class="num">4</span><h2>Параметры расчёта</h2></div>
+    <div class="toggle-row"><div class="label"><div class="t">Скидка</div><div class="d">Процент от суммы</div></div><input type="number" class="pct-input" id="s_discount" value="0" oninput="render()"> <span style="color:var(--ink-3)">%</span></div>
+    <div class="toggle-row"><div class="label"><div class="t">Непредвиденные расходы</div><div class="d">Резерв на скрытые работы</div></div><input type="number" class="pct-input" id="s_contingency" value="0" oninput="render()"> <span style="color:var(--ink-3)">%</span></div>
+    <div class="toggle-row"><div class="label"><div class="t">НДС</div><div class="d">Обычно нет у ИП / самозанятых</div></div><button class="switch" id="s_vat_sw" onclick="toggleVat()"></button><input type="number" class="pct-input" id="s_vat" value="20" oninput="render()" style="display:none"> <span id="s_vat_pct" style="color:var(--ink-3);display:none">%</span></div>
+  </div>
+
+  <div class="panel no-print">
+    <div class="panel-head"><span class="num">5</span><h2>Условия (текст в документе)</h2></div>
+    <div class="field"><textarea id="terms" oninput="render()"></textarea></div>
+  </div>
+
+  <div class="panel totals-card no-print">
+    <div class="panel-head"><span class="num">∑</span><h2>Итого</h2></div>
+    <div id="liveTotals"></div>
+  </div>
+
+  <div class="doc-wrap">
+    <div class="doc-label no-print">↓ Так документ будет выглядеть на печати / в PDF ↓</div>
+    <div class="document" id="document"></div>
+  </div>
+</div>
+
+<script>
+// ===== НИШИ + БАЗЫ РАСЦЕНОК =====
+const NICHES = {
+  remont: {
+    emoji: "🔨", title: "Ремонт квартир", objectLabel: "Объект / адрес",
+    company: "ИП Иванов · Ремонт под ключ", slogan: "Ремонт квартир и офисов в Москве",
+    object: "2-к квартира, 58 м², ул. Ленина 10",
+    terms: "• Стоимость материалов рассчитывается отдельно по факту закупки.\n• Сроки выполнения работ согласуются после подписания договора.\n• Гарантия на выполненные работы — 12 месяцев.",
+    presets: {
+      "Демонтаж": [
+        { name: "Демонтаж обоев", unit: "м²", price: 120 },
+        { name: "Демонтаж плитки", unit: "м²", price: 350 },
+        { name: "Демонтаж стяжки пола", unit: "м²", price: 450 },
+        { name: "Вынос мусора", unit: "мешок", price: 150 },
+      ],
+      "Стены": [
+        { name: "Грунтовка стен", unit: "м²", price: 80 },
+        { name: "Штукатурка стен по маякам", unit: "м²", price: 650 },
+        { name: "Шпаклёвка стен под покраску", unit: "м²", price: 450 },
+        { name: "Поклейка обоев", unit: "м²", price: 350 },
+        { name: "Укладка плитки на стены", unit: "м²", price: 1200 },
+      ],
+      "Полы": [
+        { name: "Стяжка пола", unit: "м²", price: 700 },
+        { name: "Укладка ламината", unit: "м²", price: 400 },
+        { name: "Укладка плитки на пол", unit: "м²", price: 1100 },
+        { name: "Установка плинтуса", unit: "м.п.", price: 200 },
+      ],
+      "Потолок": [
+        { name: "Натяжной потолок", unit: "м²", price: 550 },
+        { name: "Потолок из гипсокартона", unit: "м²", price: 900 },
+        { name: "Покраска потолка", unit: "м²", price: 350 },
+      ],
+      "Электрика": [
+        { name: "Монтаж точки (розетка/выключатель)", unit: "точка", price: 600 },
+        { name: "Штробление стен под проводку", unit: "м.п.", price: 250 },
+        { name: "Монтаж электрощита", unit: "шт", price: 4500 },
+      ],
+      "Сантехника": [
+        { name: "Установка смесителя", unit: "шт", price: 1500 },
+        { name: "Установка унитаза", unit: "шт", price: 2500 },
+        { name: "Разводка труб (точка)", unit: "точка", price: 2000 },
+      ],
+    },
+    seed: [
+      { title: "Демонтажные работы", items: [
+        { name: "Демонтаж обоев", unit: "м²", qty: 95, price: 120 },
+        { name: "Демонтаж плитки", unit: "м²", qty: 12, price: 350 },
+      ]},
+      { title: "Стены", items: [
+        { name: "Грунтовка стен", unit: "м²", qty: 95, price: 80 },
+        { name: "Штукатурка стен по маякам", unit: "м²", qty: 95, price: 650 },
+      ]},
+    ],
+  },
+
+  cleaning: {
+    emoji: "🧹", title: "Клининг", objectLabel: "Объект / адрес",
+    company: "Клининг-сервис «Чисто»", slogan: "Профессиональная уборка помещений",
+    object: "Квартира 3-к, 75 м², ул. Садовая 5",
+    terms: "• Используются профессиональные чистящие средства.\n• Время уборки зависит от степени загрязнения.\n• Возможна регулярная уборка по графику со скидкой.",
+    presets: {
+      "Квартиры": [
+        { name: "Поддерживающая уборка", unit: "м²", price: 60 },
+        { name: "Генеральная уборка", unit: "м²", price: 120 },
+        { name: "Уборка после ремонта", unit: "м²", price: 180 },
+        { name: "Мытьё окон", unit: "шт", price: 350 },
+      ],
+      "Кухня и санузел": [
+        { name: "Мойка кухонного гарнитура", unit: "м.п.", price: 300 },
+        { name: "Чистка плиты и духовки", unit: "шт", price: 800 },
+        { name: "Чистка санузла", unit: "шт", price: 700 },
+        { name: "Удаление известкового налёта", unit: "м²", price: 250 },
+      ],
+      "Доп. услуги": [
+        { name: "Химчистка дивана", unit: "место", price: 700 },
+        { name: "Химчистка ковра", unit: "м²", price: 250 },
+        { name: "Глажка белья", unit: "час", price: 500 },
+        { name: "Мытьё холодильника", unit: "шт", price: 600 },
+      ],
+      "Коммерческие": [
+        { name: "Уборка офиса", unit: "м²", price: 50 },
+        { name: "Мытьё витрин", unit: "м²", price: 150 },
+        { name: "Уборка после мероприятия", unit: "м²", price: 100 },
+      ],
+    },
+    seed: [
+      { title: "Уборка квартиры", items: [
+        { name: "Генеральная уборка", unit: "м²", qty: 75, price: 120 },
+        { name: "Мытьё окон", unit: "шт", qty: 4, price: 350 },
+      ]},
+    ],
+  },
+
+  windows: {
+    emoji: "🪟", title: "Окна и двери", objectLabel: "Объект / адрес",
+    company: "ОкнаСервис", slogan: "Установка окон и дверей",
+    object: "Квартира, ул. Мира 12",
+    terms: "• Замер бесплатный при заказе.\n• Гарантия на изделия — 5 лет, на монтаж — 2 года.\n• Срок изготовления — 5–10 рабочих дней.",
+    presets: {
+      "Окна ПВХ": [
+        { name: "Окно 1-створчатое (до 0.8 м²)", unit: "шт", price: 8500 },
+        { name: "Окно 2-створчатое", unit: "шт", price: 14500 },
+        { name: "Окно 3-створчатое", unit: "шт", price: 19500 },
+        { name: "Балконный блок", unit: "шт", price: 22000 },
+      ],
+      "Монтаж": [
+        { name: "Демонтаж старого окна", unit: "шт", price: 1500 },
+        { name: "Монтаж окна", unit: "шт", price: 3500 },
+        { name: "Откосы (комплект)", unit: "шт", price: 2500 },
+        { name: "Отлив", unit: "шт", price: 1200 },
+        { name: "Подоконник", unit: "м.п.", price: 1500 },
+      ],
+      "Двери": [
+        { name: "Межкомнатная дверь (с установкой)", unit: "шт", price: 9000 },
+        { name: "Входная дверь (с установкой)", unit: "шт", price: 28000 },
+      ],
+    },
+    seed: [
+      { title: "Окна ПВХ", items: [
+        { name: "Окно 2-створчатое", unit: "шт", qty: 2, price: 14500 },
+        { name: "Балконный блок", unit: "шт", qty: 1, price: 22000 },
+      ]},
+      { title: "Монтаж", items: [
+        { name: "Монтаж окна", unit: "шт", qty: 3, price: 3500 },
+        { name: "Откосы (комплект)", unit: "шт", qty: 3, price: 2500 },
+      ]},
+    ],
+  },
+
+  ceilings: {
+    emoji: "⬜", title: "Натяжные потолки", objectLabel: "Объект / адрес",
+    company: "ПотолокМастер", slogan: "Натяжные потолки за 1 день",
+    object: "Квартира 2-к, ул. Кирова 8",
+    terms: "• Замер бесплатно.\n• Установка за 1 день, без грязи и пыли.\n• Гарантия 10 лет на полотно.",
+    presets: {
+      "Потолки": [
+        { name: "Матовый потолок", unit: "м²", price: 450 },
+        { name: "Глянцевый потолок", unit: "м²", price: 550 },
+        { name: "Сатиновый потолок", unit: "м²", price: 600 },
+        { name: "Двухуровневый потолок", unit: "м²", price: 1400 },
+        { name: "Потолок с фотопечатью", unit: "м²", price: 1200 },
+      ],
+      "Доп. элементы": [
+        { name: "Установка точечного светильника", unit: "шт", price: 350 },
+        { name: "Люстра (вывод и крюк)", unit: "шт", price: 500 },
+        { name: "Обход трубы", unit: "шт", price: 400 },
+        { name: "Парящий профиль с подсветкой", unit: "м.п.", price: 900 },
+        { name: "Карниз скрытый", unit: "м.п.", price: 600 },
+      ],
+    },
+    seed: [
+      { title: "Натяжные потолки", items: [
+        { name: "Матовый потолок", unit: "м²", qty: 45, price: 450 },
+        { name: "Установка точечного светильника", unit: "шт", qty: 8, price: 350 },
+      ]},
+    ],
+  },
+
+  moving: {
+    emoji: "🚚", title: "Грузоперевозки", objectLabel: "Маршрут",
+    company: "ГрузТакси", slogan: "Переезды и грузоперевозки по городу и РФ",
+    object: "ул. Ленина 10 → ул. Победы 25",
+    terms: "• Стоимость по городу — почасовая.\n• Межгород — по километражу.\n• Грузчики оплачиваются отдельно.",
+    presets: {
+      "Транспорт": [
+        { name: "Газель (до 1.5 т) по городу", unit: "час", price: 700 },
+        { name: "Газель межгород", unit: "км", price: 35 },
+        { name: "Фургон 5 т по городу", unit: "час", price: 1200 },
+        { name: "Подача машины", unit: "шт", price: 500 },
+      ],
+      "Грузчики": [
+        { name: "Услуги грузчика", unit: "час", price: 500 },
+        { name: "Подъём на этаж (без лифта)", unit: "этаж", price: 200 },
+        { name: "Сборка/разборка мебели", unit: "шт", price: 800 },
+      ],
+      "Доп.": [
+        { name: "Упаковочный материал (комплект)", unit: "компл.", price: 1000 },
+        { name: "Перевозка пианино", unit: "шт", price: 4000 },
+      ],
+    },
+    seed: [
+      { title: "Транспорт", items: [
+        { name: "Газель (до 1.5 т) по городу", unit: "час", qty: 4, price: 700 },
+        { name: "Подача машины", unit: "шт", qty: 1, price: 500 },
+      ]},
+      { title: "Грузчики", items: [
+        { name: "Услуги грузчика", unit: "час", qty: 8, price: 500 },
+      ]},
+    ],
+  },
+
+  photo: {
+    emoji: "📸", title: "Фото / видео", objectLabel: "Съёмка / событие",
+    company: "Студия «Кадр»", slogan: "Фото и видеосъёмка любых событий",
+    object: "Свадебная съёмка, 15.06.2026",
+    terms: "• Предоплата бронирует дату.\n• Готовые материалы — в течение 14 дней.\n• Все исходники передаются заказчику.",
+    presets: {
+      "Фотосъёмка": [
+        { name: "Час фотосъёмки", unit: "час", price: 3000 },
+        { name: "Свадебный день (10 ч)", unit: "шт", price: 35000 },
+        { name: "Студийная съёмка", unit: "час", price: 4000 },
+        { name: "Предметная съёмка", unit: "кадр", price: 300 },
+      ],
+      "Видеосъёмка": [
+        { name: "Час видеосъёмки", unit: "час", price: 4000 },
+        { name: "Свадебный фильм", unit: "шт", price: 45000 },
+        { name: "Рекламный ролик (до 1 мин)", unit: "шт", price: 25000 },
+      ],
+      "Обработка": [
+        { name: "Ретушь фото", unit: "кадр", price: 250 },
+        { name: "Монтаж видео", unit: "мин", price: 1500 },
+        { name: "Цветокоррекция", unit: "час", price: 2000 },
+      ],
+      "Доп.": [
+        { name: "Второй фотограф", unit: "час", price: 2000 },
+        { name: "Аренда студии", unit: "час", price: 1500 },
+        { name: "Печать фотокниги", unit: "шт", price: 5000 },
+      ],
+    },
+    seed: [
+      { title: "Съёмка", items: [
+        { name: "Свадебный день (10 ч)", unit: "шт", qty: 1, price: 35000 },
+        { name: "Второй фотограф", unit: "час", qty: 6, price: 2000 },
+      ]},
+      { title: "Обработка", items: [
+        { name: "Ретушь фото", unit: "кадр", qty: 50, price: 250 },
+      ]},
+    ],
+  },
+
+  plumbing: {
+    emoji: "🚰", title: "Сантехника", objectLabel: "Объект / адрес",
+    company: "СантехМастер", slogan: "Монтаж и замена сантехники",
+    object: "Квартира 2-к, ул. Гагарина 15",
+    terms: "• Стоимость материалов оплачивается отдельно по факту.\n• Гарантия на работы — 12 месяцев.\n• Выезд мастера для замера — бесплатно при заказе.",
+    presets: {
+      "Установка сантехники": [
+        { name: "Установка унитаза", unit: "шт", price: 4500 },
+        { name: "Установка инсталляции с унитазом", unit: "шт", price: 9500 },
+        { name: "Установка раковины с тумбой", unit: "шт", price: 3500 },
+        { name: "Установка смесителя", unit: "шт", price: 2000 },
+        { name: "Установка ванны (акрил)", unit: "шт", price: 6500 },
+        { name: "Установка ванны (чугун/сталь)", unit: "шт", price: 8500 },
+        { name: "Установка душевой кабины", unit: "шт", price: 9000 },
+        { name: "Установка душевого трапа", unit: "шт", price: 3500 },
+        { name: "Установка полотенцесушителя", unit: "шт", price: 4500 },
+        { name: "Установка водонагревателя (бойлера)", unit: "шт", price: 5500 },
+        { name: "Подключение стиральной машины", unit: "шт", price: 3000 },
+        { name: "Подключение посудомоечной машины", unit: "шт", price: 3500 },
+      ],
+      "Разводка труб": [
+        { name: "Разводка ХВС/ГВС (точка)", unit: "точка", price: 3000 },
+        { name: "Разводка канализации (точка)", unit: "точка", price: 2500 },
+        { name: "Замена стояка водоснабжения", unit: "м.п.", price: 5500 },
+        { name: "Замена стояка канализации", unit: "м.п.", price: 4500 },
+        { name: "Установка коллектора", unit: "шт", price: 4500 },
+        { name: "Монтаж трубы (PPR/металлопластик)", unit: "м.п.", price: 600 },
+        { name: "Установка запорного крана", unit: "шт", price: 1200 },
+        { name: "Установка фильтра грубой очистки", unit: "шт", price: 1800 },
+        { name: "Установка системы фильтрации", unit: "шт", price: 4500 },
+        { name: "Установка счётчика воды", unit: "шт", price: 2500 },
+      ],
+      "Демонтаж и ремонт": [
+        { name: "Демонтаж старой сантехники", unit: "шт", price: 1200 },
+        { name: "Демонтаж ванны", unit: "шт", price: 2500 },
+        { name: "Прочистка канализации", unit: "услуга", price: 3000 },
+        { name: "Устранение течи (за точку)", unit: "точка", price: 1800 },
+        { name: "Замена сифона", unit: "шт", price: 1200 },
+        { name: "Замена гофры унитаза", unit: "шт", price: 1500 },
+      ],
+    },
+    seed: [
+      { title: "Установка сантехники", items: [
+        { name: "Установка унитаза", unit: "шт", qty: 1, price: 4500 },
+        { name: "Установка смесителя", unit: "шт", qty: 2, price: 2000 },
+        { name: "Установка раковины с тумбой", unit: "шт", qty: 1, price: 3500 },
+      ]},
+      { title: "Разводка труб", items: [
+        { name: "Разводка ХВС/ГВС (точка)", unit: "точка", qty: 4, price: 3000 },
+        { name: "Установка запорного крана", unit: "шт", qty: 2, price: 1200 },
+      ]},
+    ],
+  },
+
+  electric: {
+    emoji: "⚡", title: "Электромонтаж", objectLabel: "Объект / адрес",
+    company: "ЭлектроПрофи", slogan: "Электромонтажные работы под ключ",
+    object: "Квартира 3-к, ул. Энергетиков 7",
+    terms: "• Все работы проводятся согласно ПУЭ и ГОСТ.\n• Гарантия на работы — 24 месяца.\n• По окончании работ выдаётся акт скрытых работ.",
+    presets: {
+      "Проводка": [
+        { name: "Штробление под кабель (бетон)", unit: "м.п.", price: 350 },
+        { name: "Штробление под кабель (кирпич)", unit: "м.п.", price: 250 },
+        { name: "Прокладка кабеля до 3×2.5 мм²", unit: "м.п.", price: 100 },
+        { name: "Прокладка кабеля до 3×4 мм²", unit: "м.п.", price: 140 },
+        { name: "Прокладка кабеля в гофре", unit: "м.п.", price: 130 },
+        { name: "Установка распаечной коробки", unit: "шт", price: 600 },
+        { name: "Демонтаж старой проводки", unit: "м.п.", price: 100 },
+        { name: "Сверление отверстия в перегородке", unit: "шт", price: 250 },
+      ],
+      "Розетки и выключатели": [
+        { name: "Установка розетки/выключателя", unit: "точка", price: 700 },
+        { name: "Установка розетки с заземлением", unit: "точка", price: 800 },
+        { name: "Установка интернет-розетки RJ-45", unit: "точка", price: 900 },
+        { name: "Установка ТВ-розетки", unit: "точка", price: 800 },
+        { name: "Установка диммера", unit: "шт", price: 1200 },
+        { name: "Перенос розетки", unit: "точка", price: 1500 },
+      ],
+      "Щит и автоматика": [
+        { name: "Сборка щита (до 12 модулей)", unit: "шт", price: 7500 },
+        { name: "Сборка щита (12–24 модуля)", unit: "шт", price: 12500 },
+        { name: "Сборка щита (более 24 модулей)", unit: "шт", price: 18000 },
+        { name: "Установка автоматического выключателя", unit: "шт", price: 450 },
+        { name: "Установка УЗО / диффавтомата", unit: "шт", price: 850 },
+        { name: "Установка реле напряжения", unit: "шт", price: 1500 },
+        { name: "Замена счётчика электроэнергии", unit: "шт", price: 4500 },
+        { name: "Монтаж заземления (контур)", unit: "шт", price: 12000 },
+      ],
+      "Освещение": [
+        { name: "Установка люстры (стандарт)", unit: "шт", price: 2000 },
+        { name: "Установка люстры (сложная)", unit: "шт", price: 4000 },
+        { name: "Установка точечного светильника", unit: "шт", price: 500 },
+        { name: "Монтаж светодиодной ленты", unit: "м.п.", price: 350 },
+        { name: "Установка бра / настенного светильника", unit: "шт", price: 1200 },
+        { name: "Монтаж трекового освещения", unit: "м.п.", price: 900 },
+        { name: "Подключение датчика движения", unit: "шт", price: 1500 },
+      ],
+      "Подключение техники": [
+        { name: "Подключение варочной панели", unit: "шт", price: 3000 },
+        { name: "Подключение духового шкафа", unit: "шт", price: 2500 },
+        { name: "Подключение электроплиты", unit: "шт", price: 3500 },
+        { name: "Подключение водонагревателя", unit: "шт", price: 2000 },
+        { name: "Подключение электрического тёплого пола", unit: "шт", price: 4500 },
+      ],
+    },
+    seed: [
+      { title: "Проводка", items: [
+        { name: "Штробление под кабель (бетон)", unit: "м.п.", qty: 45, price: 350 },
+        { name: "Прокладка кабеля до 3×2.5 мм²", unit: "м.п.", qty: 80, price: 100 },
+      ]},
+      { title: "Розетки и выключатели", items: [
+        { name: "Установка розетки/выключателя", unit: "точка", qty: 22, price: 700 },
+      ]},
+      { title: "Щит", items: [
+        { name: "Сборка щита (12–24 модуля)", unit: "шт", qty: 1, price: 12500 },
+      ]},
+    ],
+  },
+
+  landscape: {
+    emoji: "🌳", title: "Ландшафт", objectLabel: "Участок / адрес",
+    company: "ЗелёныйДвор", slogan: "Благоустройство участков и озеленение",
+    object: "Участок 8 соток, КП «Берёзки»",
+    terms: "• Цена указана без учёта стоимости материалов и растений.\n• Лучшие сроки посадки — апрель–октябрь.\n• Гарантия на приживаемость растений — 1 сезон.",
+    presets: {
+      "Газон": [
+        { name: "Посевной газон (с подготовкой)", unit: "м²", price: 350 },
+        { name: "Рулонный газон (с укладкой)", unit: "м²", price: 600 },
+        { name: "Подготовка почвы под газон", unit: "м²", price: 250 },
+        { name: "Стрижка газона", unit: "м²", price: 25 },
+        { name: "Аэрация газона", unit: "м²", price: 45 },
+      ],
+      "Мощение и дорожки": [
+        { name: "Укладка тротуарной плитки", unit: "м²", price: 1600 },
+        { name: "Подготовка основания (щебень + песок)", unit: "м²", price: 1200 },
+        { name: "Укладка природного камня", unit: "м²", price: 2800 },
+        { name: "Установка бордюра садового", unit: "м.п.", price: 700 },
+        { name: "Установка бордюра дорожного", unit: "м.п.", price: 1100 },
+        { name: "Отмостка вокруг дома", unit: "м.п.", price: 2500 },
+      ],
+      "Заборы и ворота": [
+        { name: "Забор из профнастила (с установкой)", unit: "м.п.", price: 3200 },
+        { name: "Забор из евроштакетника", unit: "м.п.", price: 2400 },
+        { name: "Забор из сетки-рабицы", unit: "м.п.", price: 900 },
+        { name: "Кованый забор", unit: "м.п.", price: 6500 },
+        { name: "Установка столбов", unit: "шт", price: 1800 },
+        { name: "Распашные ворота с калиткой", unit: "комплект", price: 32000 },
+        { name: "Откатные ворота", unit: "шт", price: 52000 },
+      ],
+      "Озеленение": [
+        { name: "Посадка кустарника", unit: "шт", price: 1800 },
+        { name: "Посадка дерева (саженец)", unit: "шт", price: 2500 },
+        { name: "Посадка дерева (крупномер)", unit: "шт", price: 9500 },
+        { name: "Создание клумбы (с грунтом)", unit: "м²", price: 2200 },
+        { name: "Альпийская горка", unit: "м²", price: 4500 },
+        { name: "Живая изгородь (посадка)", unit: "м.п.", price: 2000 },
+        { name: "Подрезка деревьев / кустов", unit: "шт", price: 1500 },
+        { name: "Спил дерева (до 6 м)", unit: "шт", price: 4500 },
+      ],
+      "Инженерия": [
+        { name: "Автоматический полив (точка)", unit: "точка", price: 4500 },
+        { name: "Прокладка трубы полива", unit: "м.п.", price: 350 },
+        { name: "Дренаж участка (траншея + труба)", unit: "м.п.", price: 1800 },
+        { name: "Освещение участка (фонарь)", unit: "шт", price: 3500 },
+        { name: "Подготовка площадки (планировка)", unit: "м²", price: 180 },
+      ],
+    },
+    seed: [
+      { title: "Газон", items: [
+        { name: "Подготовка почвы под газон", unit: "м²", qty: 200, price: 250 },
+        { name: "Рулонный газон (с укладкой)", unit: "м²", qty: 200, price: 600 },
+      ]},
+      { title: "Мощение", items: [
+        { name: "Подготовка основания (щебень + песок)", unit: "м²", qty: 40, price: 1200 },
+        { name: "Укладка тротуарной плитки", unit: "м²", qty: 40, price: 1600 },
+        { name: "Установка бордюра садового", unit: "м.п.", qty: 30, price: 700 },
+      ]},
+    ],
+  },
+
+  hvac: {
+    emoji: "❄️", title: "Кондиционеры", objectLabel: "Объект / адрес",
+    company: "КлиматТехника", slogan: "Продажа, монтаж и обслуживание сплит-систем",
+    object: "Квартира, ул. Прохладная 10",
+    terms: "• Гарантия на оборудование — по сертификату производителя.\n• Гарантия на монтажные работы — 24 месяца.\n• Рекомендуется сервисное обслуживание 1–2 раза в год.",
+    presets: {
+      "Сплит-системы (оборудование)": [
+        { name: "Сплит-система 07 (до 20 м²)", unit: "шт", price: 32000 },
+        { name: "Сплит-система 09 (до 25 м²)", unit: "шт", price: 38000 },
+        { name: "Сплит-система 12 (до 35 м²)", unit: "шт", price: 46000 },
+        { name: "Сплит-система 18 (до 50 м²)", unit: "шт", price: 68000 },
+        { name: "Сплит-система 24 (до 70 м²)", unit: "шт", price: 89000 },
+        { name: "Инверторная сплит-система 09", unit: "шт", price: 52000 },
+        { name: "Инверторная сплит-система 12", unit: "шт", price: 62000 },
+        { name: "Мульти-сплит на 2 внутренних блока", unit: "комплект", price: 95000 },
+        { name: "Канальный кондиционер", unit: "шт", price: 78000 },
+      ],
+      "Монтаж": [
+        { name: "Стандартный монтаж 07–12 (до 3 м трассы)", unit: "шт", price: 10000 },
+        { name: "Стандартный монтаж 18–24", unit: "шт", price: 15000 },
+        { name: "Монтаж канального блока", unit: "шт", price: 22000 },
+        { name: "Доп. метр медной трассы", unit: "м.п.", price: 2000 },
+        { name: "Прокладка дренажа", unit: "м.п.", price: 450 },
+        { name: "Бурение отверстия в стене (до 60 см)", unit: "шт", price: 2500 },
+        { name: "Установка наружного блока на фасад (высотные)", unit: "шт", price: 5500 },
+        { name: "Монтаж декоративного короба", unit: "м.п.", price: 800 },
+        { name: "Подключение к электросети", unit: "услуга", price: 2500 },
+        { name: "Установка дренажной помпы", unit: "шт", price: 5000 },
+      ],
+      "Сервис и обслуживание": [
+        { name: "Чистка кондиционера (полная)", unit: "шт", price: 4500 },
+        { name: "Чистка фильтров", unit: "шт", price: 1500 },
+        { name: "Дозаправка фреона R410", unit: "услуга", price: 3500 },
+        { name: "Полная заправка фреоном", unit: "услуга", price: 5500 },
+        { name: "Диагностика неисправности", unit: "услуга", price: 2000 },
+        { name: "Антибактериальная обработка", unit: "шт", price: 2500 },
+        { name: "Сезонное обслуживание (комплекс)", unit: "шт", price: 6500 },
+        { name: "Демонтаж кондиционера", unit: "шт", price: 3500 },
+        { name: "Демонтаж/монтаж при переезде", unit: "шт", price: 12000 },
+      ],
+    },
+    seed: [
+      { title: "Оборудование", items: [
+        { name: "Сплит-система 09 (до 25 м²)", unit: "шт", qty: 1, price: 38000 },
+      ]},
+      { title: "Монтаж", items: [
+        { name: "Стандартный монтаж 07–12 (до 3 м трассы)", unit: "шт", qty: 1, price: 10000 },
+        { name: "Доп. метр медной трассы", unit: "м.п.", qty: 2, price: 2000 },
+      ]},
+    ],
+  },
+
+  construction: {
+    emoji: "🏗", title: "Строительство", objectLabel: "Объект / адрес",
+    company: "СтройПроект", slogan: "Строительство домов под ключ",
+    object: "Дом 120 м², КП «Сосновка», уч. 14",
+    terms: "• Цена работ указана без стоимости материалов.\n• Геология и геодезия — отдельно, по факту.\n• Гарантия на конструктив — 5 лет, на отделку — 2 года.\n• Сроки и порядок оплаты — по этапам в договоре.",
+    presets: {
+      "Земляные работы": [
+        { name: "Расчистка участка от растительности", unit: "м²", price: 80 },
+        { name: "Снятие плодородного слоя", unit: "м²", price: 120 },
+        { name: "Разметка и геодезическая привязка", unit: "услуга", price: 12000 },
+        { name: "Выемка грунта (механизированная)", unit: "м³", price: 450 },
+        { name: "Выемка грунта (ручная)", unit: "м³", price: 1800 },
+        { name: "Обратная засыпка с уплотнением", unit: "м³", price: 550 },
+        { name: "Песчаная подушка с трамбовкой", unit: "м³", price: 1200 },
+        { name: "Щебёночная подушка с трамбовкой", unit: "м³", price: 1500 },
+        { name: "Планировка участка", unit: "м²", price: 200 },
+      ],
+      "Фундамент": [
+        { name: "Опалубка ленточного фундамента", unit: "м²", price: 750 },
+        { name: "Армирование (вязка каркаса)", unit: "т", price: 18000 },
+        { name: "Заливка бетоном (М300)", unit: "м³", price: 2200 },
+        { name: "Лента мелкого заложения «под ключ»", unit: "м.п.", price: 9500 },
+        { name: "Монолитная плита «под ключ»", unit: "м²", price: 6500 },
+        { name: "Свайно-винтовой фундамент (свая 2.5 м)", unit: "шт", price: 4500 },
+        { name: "Буронабивные сваи (Ø 300, 2 м)", unit: "шт", price: 6500 },
+        { name: "Ростверк по сваям", unit: "м.п.", price: 5500 },
+        { name: "Гидроизоляция фундамента", unit: "м²", price: 350 },
+        { name: "Утепление фундамента ЭППС 50 мм", unit: "м²", price: 650 },
+      ],
+      "Стены и перегородки": [
+        { name: "Кладка газобетон 300 мм", unit: "м²", price: 1400 },
+        { name: "Кладка газобетон 400 мм", unit: "м²", price: 1700 },
+        { name: "Кладка кирпич облицовочный", unit: "м²", price: 2200 },
+        { name: "Кладка кирпич рядовой (1.5)", unit: "м²", price: 1800 },
+        { name: "Монолитные стены (опалубка+бетон+арм.)", unit: "м³", price: 12500 },
+        { name: "Перегородки ПГП 80 мм", unit: "м²", price: 1100 },
+        { name: "Перегородки ГКЛ на каркасе (2 слоя)", unit: "м²", price: 1300 },
+        { name: "Армопояс монолитный", unit: "м.п.", price: 1800 },
+        { name: "Перемычка над проёмом", unit: "шт", price: 2500 },
+      ],
+      "Перекрытия": [
+        { name: "Монолитное перекрытие (опалубка+бетон+арм.)", unit: "м²", price: 3800 },
+        { name: "Монтаж плит ПК (с краном)", unit: "м²", price: 1500 },
+        { name: "Деревянное перекрытие по балкам", unit: "м²", price: 2200 },
+        { name: "Утепление перекрытия минватой 200 мм", unit: "м²", price: 650 },
+        { name: "Пароизоляция перекрытия", unit: "м²", price: 180 },
+      ],
+      "Кровля": [
+        { name: "Стропильная система (с пиломатериалом)", unit: "м²", price: 1800 },
+        { name: "Стропильная система (только работа)", unit: "м²", price: 900 },
+        { name: "Сплошная обрешётка ОСП", unit: "м²", price: 650 },
+        { name: "Контр- и обрешётка", unit: "м²", price: 350 },
+        { name: "Утепление кровли минватой 200 мм", unit: "м²", price: 750 },
+        { name: "Пароизоляция / гидроизоляция", unit: "м²", price: 200 },
+        { name: "Монтаж металлочерепицы", unit: "м²", price: 600 },
+        { name: "Монтаж мягкой кровли (битумная черепица)", unit: "м²", price: 800 },
+        { name: "Монтаж фальцевой кровли", unit: "м²", price: 1100 },
+        { name: "Водосточная система (м.п.)", unit: "м.п.", price: 850 },
+        { name: "Снегозадержатели", unit: "м.п.", price: 700 },
+        { name: "Подшивка карнизов софитом", unit: "м.п.", price: 900 },
+      ],
+      "Фасад": [
+        { name: "Утепление фасада ЭППС/ППС 100 мм", unit: "м²", price: 750 },
+        { name: "Утепление фасада минватой 100 мм", unit: "м²", price: 850 },
+        { name: "Армирование сеткой + базовый слой", unit: "м²", price: 650 },
+        { name: "Декоративная штукатурка (короед)", unit: "м²", price: 750 },
+        { name: "Покраска фасада", unit: "м²", price: 350 },
+        { name: "Монтаж сайдинга винилового", unit: "м²", price: 750 },
+        { name: "Монтаж металлосайдинга", unit: "м²", price: 950 },
+        { name: "Вентилируемый фасад (керамогранит)", unit: "м²", price: 3500 },
+        { name: "Облицовка фасада клинкером", unit: "м²", price: 2800 },
+        { name: "Цокольный сайдинг", unit: "м²", price: 1500 },
+      ],
+      "Окна, двери, проёмы": [
+        { name: "Установка пластикового окна", unit: "шт", price: 4500 },
+        { name: "Установка большого окна (>3 м²)", unit: "шт", price: 9500 },
+        { name: "Монтажный шов по ГОСТ", unit: "м.п.", price: 550 },
+        { name: "Установка входной двери", unit: "шт", price: 6500 },
+        { name: "Установка межкомнатной двери", unit: "шт", price: 4500 },
+        { name: "Откосы пластиковые (комплект)", unit: "шт", price: 2800 },
+        { name: "Подоконник (установка)", unit: "м.п.", price: 1500 },
+        { name: "Отлив наружный", unit: "м.п.", price: 950 },
+      ],
+      "Инженерные сети (ввод)": [
+        { name: "Ввод воды в дом (от ТП)", unit: "м.п.", price: 1800 },
+        { name: "Колодец канализационный (ж/б)", unit: "шт", price: 28000 },
+        { name: "Септик 3 куб.м (с монтажом)", unit: "комплект", price: 85000 },
+        { name: "Ввод электричества (СИП, до 20 м)", unit: "услуга", price: 18000 },
+        { name: "Заземление дома (контур)", unit: "услуга", price: 22000 },
+        { name: "Скважина 30–50 м под воду", unit: "м.п.", price: 3500 },
+        { name: "Дренаж по периметру дома", unit: "м.п.", price: 2500 },
+        { name: "Газовый ввод (от ТУ)", unit: "услуга", price: 65000 },
+      ],
+      "Черновая отделка": [
+        { name: "Цементная стяжка пола (до 70 мм)", unit: "м²", price: 850 },
+        { name: "Полусухая стяжка пола", unit: "м²", price: 750 },
+        { name: "Штукатурка стен по маякам", unit: "м²", price: 650 },
+        { name: "Машинная штукатурка стен", unit: "м²", price: 550 },
+        { name: "Грунтовка стен / потолков", unit: "м²", price: 80 },
+        { name: "Гипсокартон на потолок (с каркасом)", unit: "м²", price: 950 },
+        { name: "Утепление пола ППС 100 мм", unit: "м²", price: 350 },
+      ],
+      "Доп. услуги": [
+        { name: "Снос ветхого строения", unit: "м²", price: 850 },
+        { name: "Вывоз строительного мусора (контейнер 8 м³)", unit: "шт", price: 9500 },
+        { name: "Временный туалет (аренда / мес)", unit: "мес", price: 4500 },
+        { name: "Строительные леса (аренда / мес)", unit: "м²", price: 350 },
+        { name: "Подключение временного электричества", unit: "услуга", price: 8500 },
+        { name: "Авторский надзор за объектом", unit: "мес", price: 25000 },
+      ],
+    },
+    seed: [
+      { title: "Земляные работы", items: [
+        { name: "Расчистка участка от растительности", unit: "м²", qty: 250, price: 80 },
+        { name: "Разметка и геодезическая привязка", unit: "услуга", qty: 1, price: 12000 },
+        { name: "Выемка грунта (механизированная)", unit: "м³", qty: 45, price: 450 },
+      ]},
+      { title: "Фундамент (плита 120 м²)", items: [
+        { name: "Песчаная подушка с трамбовкой", unit: "м³", qty: 18, price: 1200 },
+        { name: "Монолитная плита «под ключ»", unit: "м²", qty: 120, price: 6500 },
+        { name: "Гидроизоляция фундамента", unit: "м²", qty: 120, price: 350 },
+      ]},
+      { title: "Коробка дома", items: [
+        { name: "Кладка газобетон 400 мм", unit: "м²", qty: 180, price: 1700 },
+        { name: "Армопояс монолитный", unit: "м.п.", qty: 48, price: 1800 },
+      ]},
+    ],
+  },
+};
+
+let currentNiche = "remont";
+let state = { sections: [], vatOn: false, logo: null, docCounter: 0 };
+
+function id() { return Math.random().toString(36).slice(2, 9); }
+function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'; }
+function val(elId) { const e = document.getElementById(elId); return e ? e.value : ''; }
+function num(elId) { return parseFloat(val(elId)) || 0; }
+function esc(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function setVal(elId, v) { const e = document.getElementById(elId); if (e && v !== undefined) e.value = v; }
+
+// ===== НИШИ =====
+function renderNicheBar() {
+  document.getElementById('nicheBar').innerHTML = Object.entries(NICHES).map(([key, n]) =>
+    `<button class="niche-tab ${key === currentNiche ? 'active' : ''}" onclick="switchNiche('${key}')">
+       <span class="emoji">${n.emoji}</span> ${n.title}
+     </button>`).join('');
+}
+
+function loadNiche(key, keepCompany) {
+  const n = NICHES[key];
+  currentNiche = key;
+  if (!keepCompany) {
+    setVal('c_name', n.company);
+    setVal('c_slogan', n.slogan);
+  }
+  setVal('cl_object', n.object);
+  setVal('terms', n.terms);
+  document.getElementById('lbl_object').textContent = n.objectLabel;
+  state.sections = n.seed.map(s => ({ id: id(), title: s.title, items: s.items.map(it => ({ id: id(), ...it })) }));
+  render();
+}
+
+function switchNiche(key) {
+  if (key === currentNiche) return;
+  // спрашиваем только если пользователь что-то наработал
+  loadNiche(key, false);
+}
+
+// ===== ПРЕСЕТЫ =====
+function renderPresets() {
+  const bar = document.getElementById('presetBar');
+  const presets = NICHES[currentNiche].presets;
+  bar.innerHTML = Object.keys(presets).map(cat =>
+    `<button class="preset-chip" onclick="addPresetSection('${cat}')">+ ${cat}</button>`).join('');
+}
+function addPresetSection(cat) {
+  const presets = NICHES[currentNiche].presets[cat];
+  state.sections.push({ id: id(), title: cat, items: presets.map(p => ({ id: id(), name: p.name, unit: p.unit, qty: 1, price: p.price })) });
+  render();
+}
+
+// ===== ТЕМЫ ДОКУМЕНТА =====
+const THEMES = {
+  orange: { name: "Оранжевый",     swatch: "#EA580C", accent: "#EA580C", section: "#F5F1EA", client: "#FAF7F2" },
+  blue:   { name: "Синий деловой", swatch: "#1E40AF", accent: "#1E40AF", section: "#EFF3F9", client: "#F4F7FB" },
+  mono:   { name: "Чёрно-белый",   swatch: "#1A1714", accent: "#1A1714", section: "#F2F2F2", client: "#FAFAFA" },
+};
+let currentTheme = "orange";
+function applyTheme(key) {
+  const t = THEMES[key] || THEMES.orange;
+  currentTheme = THEMES[key] ? key : "orange";
+  const r = document.documentElement.style;
+  r.setProperty('--doc-accent', t.accent);
+  r.setProperty('--doc-section-bg', t.section);
+  r.setProperty('--doc-client-bg', t.client);
+  renderThemePicker();
+}
+function renderThemePicker() {
+  const el = document.getElementById('themePicker');
+  if (!el) return;
+  el.innerHTML = Object.entries(THEMES).map(([k, t]) =>
+    `<button class="theme-chip ${k === currentTheme ? 'active' : ''}" onclick="applyTheme('${k}')">
+       <span class="theme-swatch" style="background:${t.swatch}"></span>${t.name}
+     </button>`
+  ).join('');
+}
+
+// ===== АВТО-НУМЕРАЦИЯ =====
+function pad3(n) { return String(n).padStart(3, '0'); }
+function currentYear() {
+  // берём год из поля даты (формат "ДД.ММ.ГГГГ"), иначе из системной даты
+  const d = val('cl_date') || '';
+  const m = d.match(/(\d{4})/);
+  return m ? m[1] : String(new Date().getFullYear());
+}
+function formatDocNumber(year, counter) { return `№ ${year}-${pad3(counter)}`; }
+function nextDocNumber() {
+  state.docCounter = (state.docCounter || 0) + 1;
+  setVal('cl_number', formatDocNumber(currentYear(), state.docCounter));
+  renderDocAndTotals();
+}
+// Пытаемся выудить счётчик из существующего номера ("№ 2026-014" → 14)
+function parseCounterFromNumber(numStr) {
+  if (!numStr) return 0;
+  const m = String(numStr).match(/-(\d+)/);
+  return m ? parseInt(m[1], 10) || 0 : 0;
+}
+
+// ===== ЛОГОТИП =====
+function loadLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Это не изображение'); return; }
+  if (file.size > 1024 * 1024) { if (!confirm('Файл больше 1 МБ. Это раздует JSON. Продолжить?')) { e.target.value = ''; return; } }
+  const reader = new FileReader();
+  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+function removeLogo() {
+  state.logo = null;
+  renderLogoPreview();
+  renderDocAndTotals();
+}
+function renderLogoPreview() {
+  const box = document.getElementById('logoPreview');
+  const btn = document.getElementById('logoRemoveBtn');
+  if (!box) return;
+  if (state.logo) { box.innerHTML = `<img src="${state.logo}" alt="logo">`; if (btn) btn.style.display = ''; }
+  else { box.innerHTML = '<span class="empty">Лого<br>72×72</span>'; if (btn) btn.style.display = 'none'; }
+}
+
+// ===== РАЗДЕЛЫ =====
+function pluralItems(n) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'позиция';
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return 'позиции';
+  return 'позиций';
+}
+function renderSections() {
+  document.getElementById('sections').innerHTML = state.sections.map((s, si) => {
+    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    const cnt = s.items.length;
+    const rows = s.items.map((it, ii) => `
+      <tr draggable="true"
+          ondragstart="dragStart(event,${si},${ii})"
+          ondragend="dragEnd(event)"
+          ondragover="dragOver(event,${si},${ii})"
+          ondragleave="dragLeave(event)"
+          ondrop="dragDrop(event,${si},${ii})">
+        <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
+        <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
+        <td style="width:70px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
+        <td style="width:90px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
+        <td style="width:110px"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal"></td>
+        <td class="cell-sum">${fmt(it.qty * it.price)}</td>
+        <td style="width:34px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
+      </tr>`).join('');
+    return `
+      <div class="section-block">
+        <div class="section-head">
+          <input class="section-title-input" value="${esc(s.title)}" oninput="updSection(${si}, this.value)">
+          <span class="section-count">${cnt} ${pluralItems(cnt)}</span>
+          <span class="section-sum">${fmt(sum)}</span>
+        </div>
+        <table class="items">
+          <thead><tr><th style="width:22px"></th><th>Наименование</th><th>Ед.</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r">Сумма</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="section-foot">
+          <button class="mini-btn" onclick="addRow(${si})">＋ Строка</button>
+          <button class="mini-btn" onclick="dupSection(${si})">⎘ Дублировать раздел</button>
+          <button class="mini-btn danger" onclick="delSection(${si})">Удалить раздел</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+function upd(si, ii, key, v) {
+  if (key === 'qty' || key === 'price') v = parseFloat(v.toString().replace(',', '.')) || 0;
+  state.sections[si].items[ii][key] = v;
+  renderDocAndTotals();
+  if (key === 'qty' || key === 'price') renderSections();
+}
+function updSection(si, v) { state.sections[si].title = v; renderDocAndTotals(); }
+function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); render(); }
+function delRow(si, ii) { state.sections[si].items.splice(ii, 1); render(); }
+function addSection() { state.sections.push({ id: id(), title: "Новый раздел", items: [{ id: id(), name: "", unit: "шт", qty: 1, price: 0 }] }); render(); }
+function delSection(si) { state.sections.splice(si, 1); render(); }
+function dupSection(si) {
+  const orig = state.sections[si];
+  const copy = {
+    id: id(),
+    title: (orig.title || 'Раздел') + ' (копия)',
+    items: orig.items.map(it => ({ id: id(), name: it.name, unit: it.unit, qty: it.qty, price: it.price })),
+  };
+  state.sections.splice(si + 1, 0, copy);
+  render();
+}
+function clearAll() {
+  if (!confirm('Удалить ВСЕ разделы и работы? Действие нельзя отменить.\n\nСохрани документ в JSON, если он нужен.')) return;
+  state.sections = [];
+  render();
+}
+
+// ===== DRAG & DROP СТРОК (нативный HTML5) =====
+let dragSrc = null;
+function dragStart(e, si, ii) {
+  dragSrc = { si, ii };
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', si + ':' + ii); } catch (_) {}
+  e.currentTarget.classList.add('dragging');
+}
+function dragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('tr.drag-over-top, tr.drag-over-bottom').forEach(tr => {
+    tr.classList.remove('drag-over-top', 'drag-over-bottom');
+  });
+}
+function dragOver(e, si, ii) {
+  if (!dragSrc || dragSrc.si !== si) return; // только в пределах раздела
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const tr = e.currentTarget;
+  const rect = tr.getBoundingClientRect();
+  const after = (e.clientY - rect.top) > rect.height / 2;
+  tr.classList.toggle('drag-over-top', !after);
+  tr.classList.toggle('drag-over-bottom', after);
+}
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-top', 'drag-over-bottom');
+}
+function dragDrop(e, si, ii) {
+  e.preventDefault();
+  if (!dragSrc || dragSrc.si !== si) { dragSrc = null; return; }
+  const tr = e.currentTarget;
+  const rect = tr.getBoundingClientRect();
+  const after = (e.clientY - rect.top) > rect.height / 2;
+  let target = after ? ii + 1 : ii;
+  const from = dragSrc.ii;
+  if (from === target || from === target - 1) { dragSrc = null; render(); return; }
+  const items = state.sections[si].items;
+  const [moved] = items.splice(from, 1);
+  // если удалили элемент ДО целевой позиции — сдвигаем target на 1
+  if (from < target) target--;
+  items.splice(target, 0, moved);
+  dragSrc = null;
+  render();
+}
+function toggleVat() {
+  state.vatOn = !state.vatOn;
+  document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn);
+  document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none';
+  document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none';
+  render();
+}
+
+// ===== РАСЧЁТ =====
+function calc() {
+  const worksSum = state.sections.reduce((a, s) => a + s.items.reduce((b, it) => b + it.qty * it.price, 0), 0);
+  const discountPct = num('s_discount');
+  const contingencyPct = num('s_contingency');
+  const discount = worksSum * discountPct / 100;
+  const afterDiscount = worksSum - discount;
+  const contingency = afterDiscount * contingencyPct / 100;
+  const beforeVat = afterDiscount + contingency;
+  const vatPct = state.vatOn ? num('s_vat') : 0;
+  const vat = beforeVat * vatPct / 100;
+  return { worksSum, discountPct, discount, contingencyPct, contingency, beforeVat, vatPct, vat, total: beforeVat + vat };
+}
+function renderTotals() {
+  const c = calc();
+  let h = `<div class="total-line"><span>Сумма</span><span class="v">${fmt(c.worksSum)}</span></div>`;
+  if (c.discount > 0) h += `<div class="total-line muted"><span>Скидка ${c.discountPct}%</span><span class="v">−${fmt(c.discount)}</span></div>`;
+  if (c.contingency > 0) h += `<div class="total-line muted"><span>Непредвиденные ${c.contingencyPct}%</span><span class="v">+${fmt(c.contingency)}</span></div>`;
+  if (c.vat > 0) h += `<div class="total-line muted"><span>НДС ${c.vatPct}%</span><span class="v">+${fmt(c.vat)}</span></div>`;
+  h += `<div class="total-line grand"><span>Итого</span><span class="v">${fmt(c.total)}</span></div>`;
+  document.getElementById('liveTotals').innerHTML = h;
+}
+
+// ===== ДОКУМЕНТ =====
+function renderDoc() {
+  const c = calc();
+  const inn = val('c_inn');
+  const prepay = num('cl_prepay');
+  const sectionsHtml = state.sections.map(s => {
+    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    if (!s.items.length) return '';
+    const rows = s.items.filter(it => it.name).map((it, i) => `
+      <tr><td class="c">${i + 1}</td><td>${esc(it.name)}</td><td class="c">${esc(it.unit)}</td>
+      <td class="r">${it.qty}</td><td class="r">${fmt(it.price)}</td><td class="r">${fmt(it.qty * it.price)}</td></tr>`).join('');
+    return `<div class="doc-section"><div class="doc-section-title">${esc(s.title)}</div>
+      <table class="doc-table"><thead><tr><th class="c" style="width:32px">№</th><th>Наименование</th><th class="c" style="width:50px">Ед.</th><th class="r" style="width:60px">Кол-во</th><th class="r" style="width:90px">Цена</th><th class="r" style="width:100px">Сумма</th></tr></thead>
+      <tbody>${rows}</tbody></table><div class="doc-section-sum">Итого по разделу: ${fmt(sum)}</div></div>`;
+  }).join('');
+  let totalsHtml = `<div class="doc-total-line"><span>Стоимость</span><span class="v">${fmt(c.worksSum)}</span></div>`;
+  if (c.discount > 0) totalsHtml += `<div class="doc-total-line"><span>Скидка ${c.discountPct}%</span><span class="v">−${fmt(c.discount)}</span></div>`;
+  if (c.contingency > 0) totalsHtml += `<div class="doc-total-line"><span>Непредвиденные ${c.contingencyPct}%</span><span class="v">${fmt(c.contingency)}</span></div>`;
+  if (c.vat > 0) totalsHtml += `<div class="doc-total-line"><span>НДС ${c.vatPct}%</span><span class="v">${fmt(c.vat)}</span></div>`;
+  totalsHtml += `<div class="doc-total-line grand"><span>ИТОГО</span><span class="v">${fmt(c.total)}</span></div>`;
+  if (prepay > 0) totalsHtml += `<div class="doc-total-line" style="margin-top:8px;color:var(--doc-ink-2)"><span>Предоплата ${prepay}%</span><span class="v">${fmt(c.total * prepay / 100)}</span></div>`;
+  const logoHtml = state.logo ? `<div class="doc-logo"><img src="${state.logo}" alt="logo"></div>` : '';
+  document.getElementById('document').innerHTML = `
+    <div class="doc-header"><div class="doc-header-left">${logoHtml}<div>
+      <div class="doc-company-name">${esc(val('c_name'))}</div>
+      <div class="doc-company-slogan">${esc(val('c_slogan'))}</div>
+      <div class="doc-company-contacts">${val('c_phone') ? '☎ ' + esc(val('c_phone')) + '<br>' : ''}${val('c_email') ? '🌐 ' + esc(val('c_email')) + '<br>' : ''}${inn ? 'ИНН ' + esc(inn) : ''}</div>
+    </div></div><div class="doc-meta"><div class="doc-type-badge">${esc(val('d_type'))}</div><div class="doc-number">${esc(val('cl_number'))}</div><div class="doc-date">от ${esc(val('cl_date'))}</div></div></div>
+    <div class="doc-client"><div class="doc-client-item"><div class="l">Заказчик</div><div class="v">${esc(val('cl_name'))}</div></div><div class="doc-client-item"><div class="l">${esc(NICHES[currentNiche].objectLabel)}</div><div class="v">${esc(val('cl_object'))}</div></div></div>
+    ${sectionsHtml}
+    <div class="doc-totals">${totalsHtml}</div>
+    <div class="doc-terms"><div class="doc-terms-title">Условия</div><div class="doc-terms-text">${esc(val('terms'))}\nСрок действия предложения: ${val('cl_valid')} дней.</div></div>
+    <div class="doc-footer"><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Подпись / ${esc(val('c_name'))}</div></div><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Заказчик / ${esc(val('cl_name'))}</div></div></div>
+    <div class="demo-footer-stamp">
+      🛒 Это документ из <b>ДЕМО-версии Смета-Про</b>. Не используйте его для реальных заказчиков — на нём остаётся водяной знак.
+      <span class="small">Полная версия без водяного знака — 1990 ₽ разовая оплата · wonderful5978.github.io/smeta-pro</span>
+    </div>`;
+}
+function renderDocAndTotals() { renderDoc(); renderTotals(); }
+function render() { renderNicheBar(); renderPresets(); renderSections(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
+
+// ===== EXPORT XLSX =====
+function exportXLSX() {
+  if (typeof XLSX === 'undefined') { alert('Библиотека Excel не загрузилась. Проверь интернет и обнови страницу.'); return; }
+  const c = calc();
+  const prepay = num('cl_prepay');
+  const inn = val('c_inn');
+  const docType = val('d_type');
+  const aoa = []; // array of arrays
+  const merges = [];
+
+  // ---- ШАПКА: компания (объединяем A:F) ----
+  aoa.push([val('c_name') || '']);
+  merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  if (val('c_slogan')) {
+    aoa.push([val('c_slogan')]);
+    merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  }
+  const contacts = [];
+  if (val('c_phone')) contacts.push('тел: ' + val('c_phone'));
+  if (val('c_email')) contacts.push(val('c_email'));
+  if (inn) contacts.push('ИНН ' + inn);
+  if (contacts.length) {
+    aoa.push([contacts.join('   ·   ')]);
+    merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  }
+  aoa.push(['']);
+
+  // ---- МЕТА документа ----
+  aoa.push([docType + '  ' + (val('cl_number') || '')]);
+  merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  aoa.push(['Дата: ' + (val('cl_date') || '')]);
+  merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  aoa.push(['Заказчик: ' + (val('cl_name') || '')]);
+  merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  aoa.push([NICHES[currentNiche].objectLabel + ': ' + (val('cl_object') || '')]);
+  merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+  aoa.push(['']);
+
+  // ---- РАЗДЕЛЫ ----
+  state.sections.forEach(s => {
+    const items = s.items.filter(it => it.name);
+    if (!items.length) return;
+    // Заголовок раздела (merge A:F)
+    aoa.push([s.title || 'Раздел']);
+    merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+    // Шапка таблицы
+    aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Сумма']);
+    // Строки
+    let sectionSum = 0;
+    items.forEach((it, i) => {
+      const sum = it.qty * it.price;
+      sectionSum += sum;
+      aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, sum]);
+    });
+    // Итог раздела — подпись в E, сумма в F (без merge, чтобы подпись была видна)
+    aoa.push(['', '', '', '', 'Итого по разделу:', sectionSum]);
+    aoa.push(['']);
+  });
+
+  // ---- ИТОГИ ----
+  const pushTotal = (label, value) => {
+    aoa.push(['', '', '', '', label, value]);
+  };
+  pushTotal('Стоимость работ:', c.worksSum);
+  if (c.discount > 0) pushTotal('Скидка ' + c.discountPct + '%:', -c.discount);
+  if (c.contingency > 0) pushTotal('Непредвиденные ' + c.contingencyPct + '%:', c.contingency);
+  if (c.vat > 0) pushTotal('НДС ' + c.vatPct + '%:', c.vat);
+  pushTotal('ИТОГО:', c.total);
+  if (prepay > 0) pushTotal('Предоплата ' + prepay + '%:', c.total * prepay / 100);
+
+  // ---- УСЛОВИЯ ----
+  if (val('terms')) {
+    aoa.push(['']);
+    aoa.push(['Условия:']);
+    merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+    val('terms').split('\n').forEach(line => {
+      aoa.push([line]);
+      merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
+    });
+  }
+
+  // ---- СОЗДАНИЕ ЛИСТА ----
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!merges'] = merges;
+  ws['!cols'] = [
+    { wch: 5 },   // №
+    { wch: 48 },  // Наименование
+    { wch: 8 },   // Ед.
+    { wch: 10 },  // Кол-во
+    { wch: 14 },  // Цена
+    { wch: 16 },  // Сумма
+  ];
+
+  // Формат денег только для столбцов E (Цена) и F (Сумма).
+  // Кол-во (D) оставляем БЕЗ формата — Excel применит General и не покажет лишнюю запятую у целых.
+  Object.keys(ws).forEach(addr => {
+    if (addr[0] === '!') return;
+    const col = addr.replace(/[0-9]/g, '');
+    const cell = ws[addr];
+    if (typeof cell.v === 'number') {
+      if (col === 'E' || col === 'F') cell.z = '#,##0 " ₽"';
+    }
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, docType.slice(0, 28));
+  const rawName = ((val('cl_number') || 'смета') + '_' + (val('cl_name') || ''))
+    .replace(/№/g, 'N')                       // № → N (чтобы не вырезалось)
+    .replace(/[^a-zа-я0-9\-_ ]/gi, '_')       // прочие спецсимволы → _
+    .replace(/^[_\s]+|[_\s]+$/g, '')          // обрезаем _ и пробелы по краям
+    .replace(/_+/g, '_');                     // схлопываем подряд идущие _
+  const fname = (rawName || 'смета') + '.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+// ===== EXPORT / IMPORT =====
+function exportJSON() {
+  const data = {
+    niche: currentNiche,
+    company: { name: val('c_name'), slogan: val('c_slogan'), phone: val('c_phone'), email: val('c_email'), inn: val('c_inn') },
+    docType: val('d_type'),
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay') },
+    settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
+    terms: val('terms'), sections: state.sections,
+    logo: state.logo || null,
+    docCounter: state.docCounter || parseCounterFromNumber(val('cl_number')),
+    theme: currentTheme,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (val('cl_number') || 'смета').replace(/[^a-zа-я0-9\-]/gi, '_') + '.json';
+  a.click();
+}
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
+      if (d.company) { setVal('c_name', d.company.name); setVal('c_slogan', d.company.slogan); setVal('c_phone', d.company.phone); setVal('c_email', d.company.email); setVal('c_inn', d.company.inn); }
+      if (d.docType) setVal('d_type', d.docType);
+      if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
+      if (d.settings) { setVal('s_discount', d.settings.discount); setVal('s_contingency', d.settings.contingency); setVal('s_vat', d.settings.vat); state.vatOn = !!d.settings.vatOn; document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn); document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none'; document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none'; }
+      if (d.terms) setVal('terms', d.terms);
+      if (d.sections) state.sections = d.sections;
+      state.logo = d.logo || null;
+      // Счётчик: берём максимум, чтобы открытие старого файла не откатило нумерацию
+      const incoming = (typeof d.docCounter === 'number' ? d.docCounter : parseCounterFromNumber(d.client && d.client.number));
+      state.docCounter = Math.max(state.docCounter || 0, incoming || 0);
+      if (d.theme) applyTheme(d.theme);
+      render();
+    } catch (err) { alert('Не удалось загрузить файл: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ===== PWA: установка и оффлайн =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW не зарегистрировался:', err));
+  });
+}
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = '';
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+});
+function pwaInstall() {
+  if (!deferredInstallPrompt) {
+    alert('Браузер не предложил установку.\n\nНа iPhone: в Safari нажми «Поделиться» → «На экран Домой».\nНа Android: в Chrome открой меню (⋮) → «Установить приложение».');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+}
+
+// init
+(function init() {
+  applyTheme('orange');
+  loadNiche('remont', false);
+  // Дата по умолчанию — сегодня (ДД.ММ.ГГГГ)
+  if (!val('cl_date')) {
+    const t = new Date();
+    const dd = String(t.getDate()).padStart(2, '0');
+    const mm = String(t.getMonth() + 1).padStart(2, '0');
+    setVal('cl_date', `${dd}.${mm}.${t.getFullYear()}`);
+  }
+  // Стартовый номер: № <текущий год>-001
+  if (!val('cl_number')) {
+    state.docCounter = 1;
+    setVal('cl_number', formatDocNumber(String(new Date().getFullYear()), 1));
+  }
+  renderDocAndTotals();
+})();
+</script>
+</body>
+</html>
