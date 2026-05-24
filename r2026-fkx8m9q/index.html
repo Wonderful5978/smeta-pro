@@ -211,6 +211,27 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .profile-menu-restore { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-3); background: var(--panel-2); border-radius: 8px; margin-top: 6px; cursor: pointer; border: 1px solid var(--line-solid); }
 .profile-menu-restore:hover { color: var(--accent-2); border-color: var(--accent); }
 
+/* ===== ПАМЯТЬ ЦЕН ===== */
+.learned-bar { background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.learned-bar.empty { display: none; }
+.learned-bar-title { font-size: 12px; color: #C4B5FD; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.learned-bar-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.learned-chip { font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 10px; border-radius: 9999px; border: 1px solid rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.1); color: #DDD6FE; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.learned-chip:hover { background: rgba(168, 85, 247, 0.2); border-color: #A855F7; }
+.learned-chip .price { color: #C4B5FD; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+.tmpl-bar { background: rgba(34, 197, 94, 0.07); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.tmpl-bar.empty { display: none; }
+.tmpl-bar-title { font-size: 12px; color: #86EFAC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.tmpl-bar-list { display: flex; gap: 6px; flex-wrap: wrap; }
+.tmpl-chip { font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 10px; border-radius: 9999px; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08); color: #BBF7D0; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.tmpl-chip:hover { background: rgba(34, 197, 94, 0.18); border-color: #22C55E; }
+.tmpl-chip .x { color: #FCA5A5; font-size: 14px; padding-left: 4px; opacity: 0.6; }
+.tmpl-chip .x:hover { opacity: 1; }
+
+.learned-indicator { color: #A855F7; font-size: 13px; cursor: help; }
+td.cell-price-wrap { position: relative; }
+
 /* LOGO */
 .logo-field { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--panel-2); border: 1px dashed var(--line-solid); border-radius: 12px; }
 .logo-preview { width: 72px; height: 72px; border-radius: 10px; background: #14110E; border: 1px solid var(--line-solid); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
@@ -272,10 +293,14 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
         <button class="profile-menu-item" onclick="document.getElementById('importProfileFile').click(); closeProfileMenu()">📂 Восстановить из JSON</button>
         <div class="profile-menu-divider"></div>
         <button class="profile-menu-item" onclick="reopenWizard(); closeProfileMenu()">🪄 Запустить визард заново</button>
+        <div class="profile-menu-divider"></div>
+        <button class="profile-menu-item danger" onclick="clearLearnedPrices(); closeProfileMenu()">🧠 Очистить выученные цены</button>
+        <button class="profile-menu-item danger" onclick="clearAllTemplates(); closeProfileMenu()">📑 Удалить мои шаблоны</button>
+        <div class="profile-menu-divider"></div>
         <button class="profile-menu-item danger" onclick="resetProfile(); closeProfileMenu()">🗑 Сбросить профиль</button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="window.print()"><span class="btn-icon">📄</span> Печать в PDF</button>
+    <button class="btn btn-primary" onclick="printPDF()"><span class="btn-icon">📄</span> Печать в PDF</button>
   </div>
 
   <!-- ВИЗАРД ПЕРВОГО ЗАПУСКА -->
@@ -347,6 +372,8 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 
   <div class="panel no-print">
     <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
+    <div class="learned-bar empty" id="learnedBar"></div>
+    <div class="tmpl-bar empty" id="tmplBar"></div>
     <div class="presets-bar" id="presetBar"></div>
     <div id="sections"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -1440,7 +1467,7 @@ function renderSections() {
         <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
         <td style="width:70px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
         <td style="width:90px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
-        <td style="width:110px"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal"></td>
+        <td style="width:110px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
         <td class="cell-sum">${fmt(it.qty * it.price)}</td>
         <td style="width:34px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
       </tr>`).join('');
@@ -1458,6 +1485,7 @@ function renderSections() {
         <div class="section-foot">
           <button class="mini-btn" onclick="addRow(${si})">＋ Строка</button>
           <button class="mini-btn" onclick="dupSection(${si})">⎘ Дублировать раздел</button>
+          <button class="mini-btn" onclick="saveSectionAsTemplate(${si})">📑 Сохранить как шаблон</button>
           <button class="mini-btn danger" onclick="delSection(${si})">Удалить раздел</button>
         </div>
       </div>`;
@@ -1466,8 +1494,29 @@ function renderSections() {
 function upd(si, ii, key, v) {
   if (key === 'qty' || key === 'price') v = parseFloat(v.toString().replace(',', '.')) || 0;
   state.sections[si].items[ii][key] = v;
+  // ПАМЯТЬ ЦЕН:
+  // 1) если меняем цену вручную (и она ненулевая) — запоминаем для этой работы
+  if (key === 'price' && v > 0) {
+    const item = state.sections[si].items[ii];
+    if (item.name && item.name.trim()) {
+      learnPrice(item.name, v);
+      saveLearnedPrices();
+      renderLearnedBar();
+    }
+  }
+  // 2) если меняем name — проверяем, есть ли в памяти цена для нового имени
+  let nameChanged = false;
+  if (key === 'name' && v && v.trim()) {
+    const memPrice = getLearnedPrice(v);
+    const item = state.sections[si].items[ii];
+    // подставляем только если поле цены пустое или равно 0 (не перетираем то что юзер уже ввёл)
+    if (memPrice && (!item.price || item.price === 0)) {
+      item.price = memPrice;
+      nameChanged = true;
+    }
+  }
   renderDocAndTotals();
-  if (key === 'qty' || key === 'price') renderSections();
+  if (key === 'qty' || key === 'price' || nameChanged) renderSections();
 }
 function updSection(si, v) { state.sections[si].title = v; renderDocAndTotals(); }
 function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); render(); }
@@ -1602,9 +1651,16 @@ function renderDoc() {
 function renderDocAndTotals() { renderDoc(); renderTotals(); }
 function render() { renderNicheBar(); renderPresets(); renderSections(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
 
+// Печать PDF с предварительным запоминанием цен
+function printPDF() {
+  learnFromCurrentDoc();
+  window.print();
+}
+
 // ===== EXPORT XLSX =====
 function exportXLSX() {
   if (typeof XLSX === 'undefined') { alert('Библиотека Excel не загрузилась. Проверь интернет и обнови страницу.'); return; }
+  learnFromCurrentDoc();
   const c = calc();
   const prepay = num('cl_prepay');
   const inn = val('c_inn');
@@ -1719,6 +1775,7 @@ function exportXLSX() {
 
 // ===== EXPORT / IMPORT =====
 function exportJSON() {
+  learnFromCurrentDoc();
   const data = {
     niche: currentNiche,
     company: { name: val('c_name'), slogan: val('c_slogan'), phone: val('c_phone'), email: val('c_email'), inn: val('c_inn') },
@@ -1751,6 +1808,9 @@ function importJSON(e) {
       if (d.terms) setVal('terms', d.terms);
       if (d.sections) state.sections = d.sections;
       state.logo = d.logo || null;
+      // Память цен: учим всё что есть в загруженном JSON
+      learnFromImported(d);
+      renderLearnedBar();
       // Счётчик: берём максимум, чтобы открытие старого файла не откатило нумерацию
       const incoming = (typeof d.docCounter === 'number' ? d.docCounter : parseCounterFromNumber(d.client && d.client.number));
       state.docCounter = Math.max(state.docCounter || 0, incoming || 0);
@@ -1907,6 +1967,166 @@ document.addEventListener('click', (e) => {
   if (m && !m.contains(e.target)) m.classList.remove('open');
 });
 
+// ===== ПАМЯТЬ ЦЕН + ШАБЛОНЫ РАЗДЕЛОВ (localStorage) =====
+const LEARNED_KEY = (PROFILE_KEY.replace('-profile-', '-learned-'));
+const TMPL_KEY = (PROFILE_KEY.replace('-profile-', '-templates-'));
+let learnedPrices = {};   // { normalizedName: { price, count, original, lastUsed } }
+let sectionTemplates = []; // [ { id, title, items: [...], created } ]
+
+function normalizeName(n) { return String(n || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+function loadLearnedData() {
+  try {
+    const lp = localStorage.getItem(LEARNED_KEY);
+    if (lp) learnedPrices = JSON.parse(lp) || {};
+    const tm = localStorage.getItem(TMPL_KEY);
+    if (tm) sectionTemplates = JSON.parse(tm) || [];
+  } catch (e) { console.warn('Память цен не загрузилась:', e); }
+}
+function saveLearnedPrices() {
+  try { localStorage.setItem(LEARNED_KEY, JSON.stringify(learnedPrices)); } catch (e) {}
+}
+function saveTemplates() {
+  try { localStorage.setItem(TMPL_KEY, JSON.stringify(sectionTemplates)); } catch (e) {}
+}
+
+// Запомнить цену для одной работы
+function learnPrice(name, price) {
+  if (!name || !name.trim() || !price || price <= 0) return;
+  const key = normalizeName(name);
+  if (!key) return;
+  const existed = learnedPrices[key];
+  learnedPrices[key] = {
+    price: Number(price),
+    count: (existed ? existed.count : 0) + 1,
+    original: existed ? existed.original : name.trim(),  // запоминаем оригинальное написание первого вхождения
+    lastUsed: Date.now(),
+  };
+}
+// Получить выученную цену по имени работы
+function getLearnedPrice(name) {
+  const key = normalizeName(name);
+  return learnedPrices[key] ? learnedPrices[key].price : null;
+}
+// Учим все непустые работы из текущей сметы (на сохранении/печати/экспорте)
+function learnFromCurrentDoc() {
+  state.sections.forEach(s => {
+    s.items.forEach(it => {
+      if (it.name && it.name.trim() && it.price > 0) {
+        learnPrice(it.name, it.price);
+      }
+    });
+  });
+  saveLearnedPrices();
+  renderLearnedBar();
+  renderSections(); // обновляем индикаторы
+}
+// Учим из импортированного JSON
+function learnFromImported(d) {
+  if (!d.sections || !Array.isArray(d.sections)) return;
+  d.sections.forEach(s => {
+    (s.items || []).forEach(it => {
+      if (it && it.name && it.price > 0) learnPrice(it.name, it.price);
+    });
+  });
+  saveLearnedPrices();
+}
+
+function clearLearnedPrices() {
+  if (!confirm('Очистить все выученные цены? Это не повлияет на текущую смету и шаблоны.')) return;
+  learnedPrices = {};
+  saveLearnedPrices();
+  renderLearnedBar();
+  renderSections();
+  alert('Память цен очищена.');
+}
+
+// Топ-N выученных работ (по count, затем по lastUsed)
+function topLearnedItems(n) {
+  return Object.entries(learnedPrices)
+    .map(([key, v]) => ({ key, name: v.original || key, price: v.price, count: v.count, lastUsed: v.lastUsed }))
+    .sort((a, b) => b.count - a.count || b.lastUsed - a.lastUsed)
+    .slice(0, n);
+}
+
+function renderLearnedBar() {
+  const bar = document.getElementById('learnedBar');
+  if (!bar) return;
+  const top = topLearnedItems(10);
+  if (!top.length) { bar.classList.add('empty'); bar.innerHTML = ''; return; }
+  bar.classList.remove('empty');
+  bar.innerHTML = `<div class="learned-bar-title">🧠 Часто использую (быстрое добавление)</div>
+    <div class="learned-bar-list">
+      ${top.map(it => `<button class="learned-chip" onclick="addLearnedItem('${esc(it.name).replace(/'/g, "\\'")}', ${it.price})" title="Использовал ${it.count} раз">${esc(it.name)} <span class="price">${fmt(it.price)}</span></button>`).join('')}
+    </div>`;
+}
+
+// Добавить работу из памяти в последний раздел (или создать новый раздел "Доп. работы")
+function addLearnedItem(name, price) {
+  let targetSi = state.sections.length - 1;
+  if (targetSi < 0) {
+    state.sections.push({ id: id(), title: "Доп. работы", items: [] });
+    targetSi = 0;
+  }
+  state.sections[targetSi].items.push({ id: id(), name, unit: 'шт', qty: 1, price });
+  render();
+}
+
+// ===== ШАБЛОНЫ РАЗДЕЛОВ =====
+function saveSectionAsTemplate(si) {
+  const s = state.sections[si];
+  if (!s) return;
+  const name = prompt('Название шаблона:', s.title || 'Мой раздел');
+  if (!name || !name.trim()) return;
+  const tpl = {
+    id: id(),
+    title: name.trim(),
+    items: s.items.filter(it => it.name).map(it => ({ name: it.name, unit: it.unit, qty: it.qty, price: it.price })),
+    created: Date.now(),
+  };
+  if (!tpl.items.length) { alert('Раздел пустой — нечего сохранять.'); return; }
+  sectionTemplates.push(tpl);
+  saveTemplates();
+  renderTemplatesBar();
+  alert(`Шаблон «${name}» сохранён. Найдёшь его в зелёной полосе сверху.`);
+}
+function addTemplateAsSection(tplId) {
+  const tpl = sectionTemplates.find(t => t.id === tplId);
+  if (!tpl) return;
+  state.sections.push({
+    id: id(),
+    title: tpl.title,
+    items: tpl.items.map(it => ({ id: id(), name: it.name, unit: it.unit, qty: it.qty, price: it.price })),
+  });
+  render();
+}
+function deleteTemplate(tplId, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const tpl = sectionTemplates.find(t => t.id === tplId);
+  if (!tpl) return;
+  if (!confirm(`Удалить шаблон «${tpl.title}»?`)) return;
+  sectionTemplates = sectionTemplates.filter(t => t.id !== tplId);
+  saveTemplates();
+  renderTemplatesBar();
+}
+function clearAllTemplates() {
+  if (!sectionTemplates.length) { alert('Шаблонов нет.'); return; }
+  if (!confirm(`Удалить ВСЕ шаблоны (${sectionTemplates.length} шт)?`)) return;
+  sectionTemplates = [];
+  saveTemplates();
+  renderTemplatesBar();
+}
+function renderTemplatesBar() {
+  const bar = document.getElementById('tmplBar');
+  if (!bar) return;
+  if (!sectionTemplates.length) { bar.classList.add('empty'); bar.innerHTML = ''; return; }
+  bar.classList.remove('empty');
+  bar.innerHTML = `<div class="tmpl-bar-title">📑 Мои шаблоны разделов</div>
+    <div class="tmpl-bar-list">
+      ${sectionTemplates.map(t => `<button class="tmpl-chip" onclick="addTemplateAsSection('${t.id}')">+ ${esc(t.title)} <span style="opacity:0.7">(${t.items.length})</span> <span class="x" onclick="deleteTemplate('${t.id}', event)" title="Удалить шаблон">×</span></button>`).join('')}
+    </div>`;
+}
+
 // ===== ВИЗАРД ПЕРВОГО ЗАПУСКА =====
 let wizardStep = 1;
 let wizardData = null;
@@ -2043,6 +2263,7 @@ function finishWizard(skipped) {
 // init
 (function init() {
   const loaded = loadProfile();
+  loadLearnedData();
   applyTheme(loaded ? (profile.theme || 'orange') : 'orange');
   loadNiche(loaded ? (profile.niche || 'remont') : 'remont', loaded);
   // Если профиль загружен — применяем наши данные поверх ниши
@@ -2065,6 +2286,8 @@ function finishWizard(skipped) {
   }
   // Привязываем автосохранение профиля к полям
   watchProfileFields();
+  renderLearnedBar();
+  renderTemplatesBar();
   renderDocAndTotals();
   // Если не настраивали — запускаем визард
   if (!loaded || !profile.configured) startWizard(false);
