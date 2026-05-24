@@ -1938,13 +1938,14 @@ function saveProfile() {
     }
   }
 }
-// Подставить данные профиля в поля приложения
+// Подставить данные профиля в поля приложения.
+// Если поле в профиле пустое — НЕ затираем (оставляем дефолт ниши / то что ввёл юзер)
 function applyProfileToFields() {
-  setVal('c_name', profile.company.name);
-  setVal('c_slogan', profile.company.slogan);
-  setVal('c_phone', profile.company.phone);
-  setVal('c_email', profile.company.email);
-  setVal('c_inn', profile.company.inn);
+  if (profile.company.name) setVal('c_name', profile.company.name);
+  if (profile.company.slogan) setVal('c_slogan', profile.company.slogan);
+  if (profile.company.phone) setVal('c_phone', profile.company.phone);
+  if (profile.company.email) setVal('c_email', profile.company.email);
+  if (profile.company.inn) setVal('c_inn', profile.company.inn);
   state.logo = profile.logo || null;
   applyTheme(profile.theme || 'orange');
   renderLogoPreview();
@@ -2224,13 +2225,13 @@ function renderWizard() {
       <h2>Данные твоей компании</h2>
       <p class="wizard-sub">Эти поля будут автоматически появляться в шапке каждого документа. Можно не заполнять — добавишь позже.</p>
       <div class="wizard-fields">
-        <div class="field"><label>Название компании или ИП</label><input id="w_name" value="${esc(wizardData.company.name)}" placeholder="ИП Иванов · Ремонт под ключ"></div>
-        <div class="field"><label>Слоган / специализация</label><input id="w_slogan" value="${esc(wizardData.company.slogan)}" placeholder="Ремонт квартир в Москве"></div>
+        <div class="field"><label>Название компании или ИП</label><input id="w_name" value="${esc(wizardData.company.name)}" oninput="wizardData.company.name=this.value" placeholder="ИП Иванов · Ремонт под ключ"></div>
+        <div class="field"><label>Слоган / специализация</label><input id="w_slogan" value="${esc(wizardData.company.slogan)}" oninput="wizardData.company.slogan=this.value" placeholder="Ремонт квартир в Москве"></div>
         <div class="grid-2">
-          <div class="field"><label>Телефон</label><input id="w_phone" value="${esc(wizardData.company.phone)}" placeholder="+7 (___) ___-__-__"></div>
-          <div class="field"><label>Email или сайт</label><input id="w_email" value="${esc(wizardData.company.email)}" placeholder="example.ru"></div>
+          <div class="field"><label>Телефон</label><input id="w_phone" value="${esc(wizardData.company.phone)}" oninput="wizardData.company.phone=this.value" placeholder="+7 (___) ___-__-__"></div>
+          <div class="field"><label>Email или сайт</label><input id="w_email" value="${esc(wizardData.company.email)}" oninput="wizardData.company.email=this.value" placeholder="example.ru"></div>
         </div>
-        <div class="field"><label>ИНН (необязательно)</label><input id="w_inn" value="${esc(wizardData.company.inn)}"></div>
+        <div class="field"><label>ИНН (необязательно)</label><input id="w_inn" value="${esc(wizardData.company.inn)}" oninput="wizardData.company.inn=this.value"></div>
       </div>
       <div class="wizard-footer">
         <div class="left"><button class="btn" onclick="prevWizardStep()">← Назад</button></div>
