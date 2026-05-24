@@ -1438,7 +1438,7 @@ function applyTheme(key) {
   r.setProperty('--doc-section-bg', t.section);
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
-  if (typeof captureProfileFromFields === 'function') captureProfileFromFields();
+  if (typeof captureProfileFromFields === 'function' && profile && profile.configured) captureProfileFromFields();
 }
 function renderThemePicker() {
   const el = document.getElementById('themePicker');
@@ -1963,6 +1963,13 @@ function captureProfileFromFields() {
   profile.logo = state.logo || null;
   profile.theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'orange');
   profile.docCounter = Math.max(profile.docCounter || 0, state.docCounter || 0);
+  if (!profile.configured) {
+    const hasMeaningful = (profile.company.name && profile.company.name.trim())
+      || (profile.company.slogan && profile.company.slogan.trim())
+      || (profile.company.inn && profile.company.inn.trim())
+      || profile.logo;
+    if (hasMeaningful) profile.configured = true;
+  }
   saveProfile();
 }
 // Автосохранение профиля при изменении любого поля компании или темы

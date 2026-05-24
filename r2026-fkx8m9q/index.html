@@ -1387,7 +1387,9 @@ function applyTheme(key) {
   r.setProperty('--doc-section-bg', t.section);
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
-  if (typeof captureProfileFromFields === 'function') captureProfileFromFields();
+  // Сохраняем тему в профиль ТОЛЬКО если профиль уже настроен (configured=true).
+  // Иначе при первом запуске создастся пустой профиль и визард не покажется.
+  if (typeof captureProfileFromFields === 'function' && profile && profile.configured) captureProfileFromFields();
 }
 function renderThemePicker() {
   const el = document.getElementById('themePicker');
@@ -1427,7 +1429,7 @@ function loadLogo(e) {
   if (!file.type.startsWith('image/')) { alert('Это не изображение'); return; }
   if (file.size > 1024 * 1024) { if (!confirm('Файл больше 1 МБ. Это раздует JSON. Продолжить?')) { e.target.value = ''; return; } }
   const reader = new FileReader();
-  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); if (typeof captureProfileFromFields === 'function') captureProfileFromFields(); };
+  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); if (typeof captureProfileFromFields === 'function') captureProfileFromFields(); /* лого триггерит auto-configured */ };
   reader.readAsDataURL(file);
   e.target.value = '';
 }
@@ -1910,6 +1912,18 @@ function captureProfileFromFields() {
   profile.logo = state.logo || null;
   profile.theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'orange');
   profile.docCounter = Math.max(profile.docCounter || 0, state.docCounter || 0);
+  // АВТО-CONFIGURED: если пользователь ввёл хоть какое-то осмысленное поле (название, слоган, ИНН или лого) —
+  // считаем профиль настроенным, чтобы визард больше не показывался
+  if (!profile.configured) {
+    const hasMeaningful = (profile.company.name && profile.company.name.trim())
+      || (profile.company.slogan && profile.company.slogan.trim())
+      || (profile.company.inn && profile.company.inn.trim())
+      || profile.logo;
+    if (hasMeaningful) {
+      profile.configured = true;
+      console.log('[Смета-Про] auto-configured = true (юзер ввёл данные напрямую)');
+    }
+  }
   saveProfile();
 }
 // Автосохранение профиля при изменении любого поля компании или темы
