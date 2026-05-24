@@ -170,6 +170,26 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .hint { background: var(--accent-soft); border: 1px solid var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 20px; }
 .hint b { color: var(--accent-2); }
 
+/* Маленькая строка с email лицензии в подвале PDF (защита от пиратства) */
+.doc-license {
+  margin-top: 22px;
+  padding-top: 10px;
+  border-top: 1px dashed #D5CFC4;
+  text-align: center;
+  font-size: 9px;
+  color: #999;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.doc-license .lic-id { font-family: 'JetBrains Mono', monospace; }
+@media print {
+  .doc-license {
+    color: #888 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* ===== ВИЗАРД ПЕРВОГО ЗАПУСКА ===== */
 .wizard-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .wizard-overlay.hidden { display: none; }
@@ -1655,7 +1675,17 @@ function renderDoc() {
     ${sectionsHtml}
     <div class="doc-totals">${totalsHtml}</div>
     <div class="doc-terms"><div class="doc-terms-title">Условия</div><div class="doc-terms-text">${esc(val('terms'))}\nСрок действия предложения: ${val('cl_valid')} дней.</div></div>
-    <div class="doc-footer"><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Подпись / ${esc(val('c_name'))}</div></div><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Заказчик / ${esc(val('cl_name'))}</div></div></div>`;
+    <div class="doc-footer"><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Подпись / ${esc(val('c_name'))}</div></div><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Заказчик / ${esc(val('cl_name'))}</div></div></div>
+    ${(() => {
+      const licEmail = profile && profile.company && profile.company.email && profile.company.email !== 'example.ru' ? profile.company.email : '';
+      const licId = profile && profile.licenseId ? profile.licenseId : '';
+      if (!licEmail && !licId) return '';
+      const parts = [];
+      if (licEmail) parts.push('Лицензия: ' + esc(licEmail));
+      if (licId) parts.push('ID <span class="lic-id">' + esc(licId) + '</span>');
+      parts.push('smeta-pro.pages.dev');
+      return '<div class="doc-license">' + parts.join(' · ') + '</div>';
+    })()}`;
 }
 function renderDocAndTotals() { renderDoc(); renderTotals(); }
 function render() { renderNicheBar(); renderPresets(); renderSections(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
@@ -1866,7 +1896,16 @@ let profile = {
   theme: 'orange',
   niche: 'remont',
   docCounter: 0,
+  licenseId: null, // генерится один раз при первом сохранении, не меняется
 };
+
+// Генерируем уникальный ID лицензии (формат SP-XXXXXX, без похожих символов)
+function generateLicenseId() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // без I, O, 0, 1
+  let id = 'SP-';
+  for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
 
 function loadProfile() {
   try {
@@ -1882,6 +1921,8 @@ function loadProfile() {
   return false;
 }
 function saveProfile() {
+  // Генерим licenseId один раз при первом сохранении
+  if (!profile.licenseId) profile.licenseId = generateLicenseId();
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   } catch (e) {
