@@ -170,6 +170,47 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .hint { background: var(--accent-soft); border: 1px solid var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 20px; }
 .hint b { color: var(--accent-2); }
 
+/* ===== ВИЗАРД ПЕРВОГО ЗАПУСКА ===== */
+.wizard-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.wizard-overlay.hidden { display: none; }
+.wizard { background: var(--panel); border: 1px solid var(--line-solid); border-radius: 22px; max-width: 560px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 36px; }
+.wizard-step-counter { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 14px; }
+.wizard h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+.wizard .wizard-sub { color: var(--ink-2); font-size: 14px; margin-bottom: 24px; }
+.wizard-niches { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.wizard-niche-card { padding: 14px 10px; background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 12px; cursor: pointer; text-align: center; transition: all 140ms; }
+.wizard-niche-card:hover { border-color: var(--accent); }
+.wizard-niche-card.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.wizard-niche-card .e { font-size: 24px; margin-bottom: 4px; }
+.wizard-niche-card .n { font-size: 12px; font-weight: 600; }
+.wizard-themes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.wizard-theme-card { padding: 18px 12px; border: 2px solid var(--line-solid); border-radius: 12px; cursor: pointer; text-align: center; background: white; transition: all 140ms; }
+.wizard-theme-card:hover { transform: translateY(-2px); }
+.wizard-theme-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.wizard-theme-card .preview { width: 100%; height: 24px; border-radius: 4px; margin-bottom: 10px; }
+.wizard-theme-card.t-orange .preview { background: #EA580C; }
+.wizard-theme-card.t-blue .preview { background: #1E40AF; }
+.wizard-theme-card.t-bw .preview { background: #1A1A1A; }
+.wizard-theme-card .name { font-size: 13px; font-weight: 700; color: #1A1714; }
+.wizard-fields { display: flex; flex-direction: column; gap: 14px; }
+.wizard-fields .field input, .wizard-fields .field textarea { background: var(--panel-2); }
+.wizard-footer { display: flex; gap: 10px; justify-content: space-between; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line-solid); }
+.wizard-footer .left, .wizard-footer .right { display: flex; gap: 10px; }
+.wizard-skip { background: transparent; border: none; color: var(--ink-3); font-family: inherit; font-size: 13px; cursor: pointer; padding: 10px; }
+.wizard-skip:hover { color: var(--ink); }
+
+/* Профиль-кнопки в шапке */
+.profile-menu { position: relative; }
+.profile-menu-list { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--line-solid); border-radius: 12px; padding: 6px; min-width: 220px; z-index: 60; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6); }
+.profile-menu.open .profile-menu-list { display: block; }
+.profile-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: transparent; border: none; color: var(--ink); font-family: inherit; font-size: 14px; cursor: pointer; width: 100%; text-align: left; }
+.profile-menu-item:hover { background: var(--panel-2); }
+.profile-menu-item.danger { color: #F87171; }
+.profile-menu-item.danger:hover { background: rgba(248,113,113,0.08); }
+.profile-menu-divider { height: 1px; background: var(--line-solid); margin: 4px 6px; }
+.profile-menu-restore { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-3); background: var(--panel-2); border-radius: 8px; margin-top: 6px; cursor: pointer; border: 1px solid var(--line-solid); }
+.profile-menu-restore:hover { color: var(--accent-2); border-color: var(--accent); }
+
 /* LOGO */
 .logo-field { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--panel-2); border: 1px dashed var(--line-solid); border-radius: 12px; }
 .logo-preview { width: 72px; height: 72px; border-radius: 10px; background: #14110E; border: 1px solid var(--line-solid); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
@@ -223,41 +264,29 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .demo-bar a:hover { color: #FEF3C7; }
 .demo-bar .demo-emoji { font-size: 18px; }
 
-/* Подложка с водяным знаком на документе (видна на экране и в печати) */
 .document { position: relative; overflow: hidden; }
 .document::before {
   content: "DEMO · купите за 1990 ₽";
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) rotate(-30deg);
-  font-size: 92px;
-  font-weight: 800;
+  font-size: 92px; font-weight: 800;
   color: rgba(234, 88, 12, 0.08);
-  pointer-events: none;
-  z-index: 1;
-  white-space: nowrap;
-  letter-spacing: -0.02em;
+  pointer-events: none; z-index: 1;
+  white-space: nowrap; letter-spacing: -0.02em;
 }
 .document > * { position: relative; z-index: 2; }
 
-/* Полоска внизу документа */
 .demo-footer-stamp {
-  margin-top: 28px;
-  padding: 14px 18px;
-  background: #FFF3E6;
-  border: 2px dashed #EA580C;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 13px;
-  color: #7C2D12;
-  font-weight: 600;
+  margin-top: 28px; padding: 14px 18px;
+  background: #FFF3E6; border: 2px dashed #EA580C; border-radius: 10px;
+  text-align: center; font-size: 13px; color: #7C2D12; font-weight: 600;
 }
 .demo-footer-stamp b { color: #EA580C; font-size: 14px; }
 .demo-footer-stamp .small { display: block; margin-top: 4px; font-size: 11px; font-weight: 500; color: #92400E; }
 
 @media print {
   .demo-bar { display: none !important; }
-  /* Усиленный водяной знак при печати — чтобы клиент сразу видел что это DEMO */
   .document::before {
     color: rgba(234, 88, 12, 0.18) !important;
     font-size: 110px !important;
@@ -284,9 +313,29 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
     <button class="btn" onclick="exportJSON()"><span class="btn-icon">💾</span> Сохранить</button>
     <button class="btn" onclick="document.getElementById('importFile').click()"><span class="btn-icon">📂</span> Загрузить</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <input type="file" id="importProfileFile" accept=".json" style="display:none" onchange="importProfile(event)">
     <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
     <button class="btn" id="installBtn" onclick="pwaInstall()" style="display:none"><span class="btn-icon">⬇️</span> Установить</button>
+    <div class="profile-menu" id="profileMenu">
+      <button class="btn" onclick="toggleProfileMenu()"><span class="btn-icon">⚙️</span> Профиль ▾</button>
+      <div class="profile-menu-list">
+        <button class="profile-menu-item" onclick="applyProfileToFields(); closeProfileMenu()">↩ Подставить мои данные в поля</button>
+        <div class="profile-menu-divider"></div>
+        <button class="profile-menu-item" onclick="exportProfile(); closeProfileMenu()">💾 Бэкап профиля в JSON</button>
+        <button class="profile-menu-item" onclick="document.getElementById('importProfileFile').click(); closeProfileMenu()">📂 Восстановить из JSON</button>
+        <div class="profile-menu-divider"></div>
+        <button class="profile-menu-item" onclick="reopenWizard(); closeProfileMenu()">🪄 Запустить визард заново</button>
+        <button class="profile-menu-item danger" onclick="resetProfile(); closeProfileMenu()">🗑 Сбросить профиль</button>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="window.print()"><span class="btn-icon">📄</span> Печать в PDF</button>
+  </div>
+
+  <!-- ВИЗАРД ПЕРВОГО ЗАПУСКА -->
+  <div class="wizard-overlay hidden" id="wizardOverlay">
+    <div class="wizard">
+      <div id="wizardBody"></div>
+    </div>
   </div>
 
   <div class="intro no-print">
@@ -1041,6 +1090,7 @@ function applyTheme(key) {
   r.setProperty('--doc-section-bg', t.section);
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
+  if (typeof captureProfileFromFields === 'function') captureProfileFromFields();
 }
 function renderThemePicker() {
   const el = document.getElementById('themePicker');
@@ -1080,7 +1130,7 @@ function loadLogo(e) {
   if (!file.type.startsWith('image/')) { alert('Это не изображение'); return; }
   if (file.size > 1024 * 1024) { if (!confirm('Файл больше 1 МБ. Это раздует JSON. Продолжить?')) { e.target.value = ''; return; } }
   const reader = new FileReader();
-  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); };
+  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); if (typeof captureProfileFromFields === 'function') captureProfileFromFields(); };
   reader.readAsDataURL(file);
   e.target.value = '';
 }
@@ -1088,6 +1138,7 @@ function removeLogo() {
   state.logo = null;
   renderLogoPreview();
   renderDocAndTotals();
+  if (typeof captureProfileFromFields === 'function') captureProfileFromFields();
 }
 function renderLogoPreview() {
   const box = document.getElementById('logoPreview');
@@ -1471,10 +1522,269 @@ function pwaInstall() {
   deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
 }
 
+// ===== ПРОФИЛЬ (localStorage) =====
+const PROFILE_KEY = 'smeta-pro-demo-profile-v1';
+let profile = {
+  configured: false,
+  company: { name: '', slogan: '', phone: '+7 (999) 123-45-67', email: 'example.ru', inn: '' },
+  logo: null,
+  theme: 'orange',
+  niche: 'remont',
+  docCounter: 0,
+};
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    if (p && typeof p === 'object') {
+      profile = Object.assign(profile, p);
+      profile.company = Object.assign({ name: '', slogan: '', phone: '', email: '', inn: '' }, p.company || {});
+      return true;
+    }
+  } catch (e) { console.warn('Профиль не загрузился:', e); }
+  return false;
+}
+function saveProfile() {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch (e) {
+    if (String(e).includes('QuotaExceeded')) {
+      alert('Не хватает места в браузере. Лого слишком большое — попробуй меньше размером.');
+    } else {
+      console.warn('Профиль не сохранился:', e);
+    }
+  }
+}
+// Подставить данные профиля в поля приложения
+function applyProfileToFields() {
+  setVal('c_name', profile.company.name);
+  setVal('c_slogan', profile.company.slogan);
+  setVal('c_phone', profile.company.phone);
+  setVal('c_email', profile.company.email);
+  setVal('c_inn', profile.company.inn);
+  state.logo = profile.logo || null;
+  applyTheme(profile.theme || 'orange');
+  renderLogoPreview();
+  renderDocAndTotals();
+}
+// Собрать данные из полей в профиль (для автосохранения)
+function captureProfileFromFields() {
+  profile.company = {
+    name: val('c_name'),
+    slogan: val('c_slogan'),
+    phone: val('c_phone'),
+    email: val('c_email'),
+    inn: val('c_inn'),
+  };
+  profile.logo = state.logo || null;
+  profile.theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'orange');
+  profile.docCounter = Math.max(profile.docCounter || 0, state.docCounter || 0);
+  saveProfile();
+}
+// Автосохранение профиля при изменении любого поля компании или темы
+function watchProfileFields() {
+  ['c_name', 'c_slogan', 'c_phone', 'c_email', 'c_inn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { captureProfileFromFields(); });
+  });
+}
+
+// Бэкап профиля в JSON
+function exportProfile() {
+  captureProfileFromFields();
+  const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'smeta-pro-profile.json';
+  a.click();
+}
+function importProfile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const p = JSON.parse(ev.target.result);
+      if (!p || typeof p !== 'object') throw new Error('Неверный формат');
+      profile = Object.assign(profile, p);
+      profile.company = Object.assign({ name: '', slogan: '', phone: '', email: '', inn: '' }, p.company || {});
+      profile.configured = true;
+      saveProfile();
+      applyProfileToFields();
+      alert('Профиль восстановлен.');
+    } catch (err) { alert('Не удалось загрузить профиль: ' + err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+function resetProfile() {
+  if (!confirm('Удалить профиль из браузера? Текущая смета не пострадает, но в следующий раз запустится визард настройки.')) return;
+  try { localStorage.removeItem(PROFILE_KEY); } catch (e) {}
+  profile.configured = false;
+  alert('Профиль сброшен. Перезагрузи страницу — появится визард.');
+}
+function reopenWizard() {
+  startWizard(true);
+}
+
+// Меню профиля
+function toggleProfileMenu() {
+  document.getElementById('profileMenu').classList.toggle('open');
+}
+function closeProfileMenu() {
+  document.getElementById('profileMenu').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('profileMenu');
+  if (m && !m.contains(e.target)) m.classList.remove('open');
+});
+
+// ===== ВИЗАРД ПЕРВОГО ЗАПУСКА =====
+let wizardStep = 1;
+let wizardData = null;
+function startWizard(isReopen) {
+  wizardStep = 1;
+  wizardData = isReopen ? JSON.parse(JSON.stringify(profile)) : {
+    company: { name: '', slogan: '', phone: '+7 (999) 123-45-67', email: '', inn: '' },
+    logo: null,
+    theme: 'orange',
+    niche: 'remont',
+  };
+  document.getElementById('wizardOverlay').classList.remove('hidden');
+  renderWizard();
+}
+function closeWizard() { document.getElementById('wizardOverlay').classList.add('hidden'); }
+function nextWizardStep() { wizardStep++; renderWizard(); }
+function prevWizardStep() { wizardStep--; renderWizard(); }
+
+function renderWizard() {
+  const body = document.getElementById('wizardBody');
+  if (wizardStep === 1) {
+    // Шаг 1 — выбор ниши
+    const tiles = Object.entries(NICHES).map(([key, n]) =>
+      `<div class="wizard-niche-card ${wizardData.niche === key ? 'selected' : ''}" onclick="wizardData.niche='${key}'; renderWizard()">
+        <div class="e">${n.emoji}</div><div class="n">${n.title}</div>
+      </div>`).join('');
+    body.innerHTML = `
+      <div class="wizard-step-counter">Шаг 1 из 4</div>
+      <h2>Привет! 👋</h2>
+      <p class="wizard-sub">Это твой первый запуск Смета-Про. Настроим за минуту. Выбери основное направление работы — расценки будут подставляться из этой ниши.</p>
+      <div class="wizard-niches">${tiles}</div>
+      <div class="wizard-footer">
+        <button class="wizard-skip" onclick="finishWizard(true)">Пропустить настройку</button>
+        <div class="right"><button class="btn btn-primary" onclick="nextWizardStep()">Дальше →</button></div>
+      </div>`;
+  } else if (wizardStep === 2) {
+    // Шаг 2 — данные компании
+    body.innerHTML = `
+      <div class="wizard-step-counter">Шаг 2 из 4</div>
+      <h2>Данные твоей компании</h2>
+      <p class="wizard-sub">Эти поля будут автоматически появляться в шапке каждого документа. Можно не заполнять — добавишь позже.</p>
+      <div class="wizard-fields">
+        <div class="field"><label>Название компании или ИП</label><input id="w_name" value="${esc(wizardData.company.name)}" placeholder="ИП Иванов · Ремонт под ключ"></div>
+        <div class="field"><label>Слоган / специализация</label><input id="w_slogan" value="${esc(wizardData.company.slogan)}" placeholder="Ремонт квартир в Москве"></div>
+        <div class="grid-2">
+          <div class="field"><label>Телефон</label><input id="w_phone" value="${esc(wizardData.company.phone)}" placeholder="+7 (___) ___-__-__"></div>
+          <div class="field"><label>Email или сайт</label><input id="w_email" value="${esc(wizardData.company.email)}" placeholder="example.ru"></div>
+        </div>
+        <div class="field"><label>ИНН (необязательно)</label><input id="w_inn" value="${esc(wizardData.company.inn)}"></div>
+      </div>
+      <div class="wizard-footer">
+        <div class="left"><button class="btn" onclick="prevWizardStep()">← Назад</button></div>
+        <div class="right"><button class="btn btn-primary" onclick="saveWizardCompany(); nextWizardStep()">Дальше →</button></div>
+      </div>`;
+  } else if (wizardStep === 3) {
+    // Шаг 3 — логотип
+    const logoPrev = wizardData.logo ? `<img src="${wizardData.logo}" style="max-width:140px;max-height:140px;border-radius:14px;border:1px solid var(--line-solid);padding:8px;background:#14110E">` : '<div style="width:140px;height:140px;border-radius:14px;border:2px dashed var(--line-solid);display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:13px;text-align:center;padding:8px">логотип не загружен</div>';
+    body.innerHTML = `
+      <div class="wizard-step-counter">Шаг 3 из 4</div>
+      <h2>Логотип компании</h2>
+      <p class="wizard-sub">Загрузи логотип — он будет в шапке каждого документа слева от названия. Это сильно повышает солидность КП. Если нет — пропусти.</p>
+      <div style="text-align:center;margin:20px 0">${logoPrev}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" onclick="document.getElementById('w_logo_file').click()">📤 Выбрать файл</button>
+        ${wizardData.logo ? '<button class="btn" onclick="wizardData.logo=null; renderWizard()">Убрать</button>' : ''}
+        <input type="file" id="w_logo_file" accept="image/*" style="display:none" onchange="loadWizardLogo(event)">
+      </div>
+      <div class="wizard-footer">
+        <div class="left"><button class="btn" onclick="prevWizardStep()">← Назад</button></div>
+        <div class="right"><button class="wizard-skip" onclick="nextWizardStep()">Пропустить</button><button class="btn btn-primary" onclick="nextWizardStep()">Дальше →</button></div>
+      </div>`;
+  } else if (wizardStep === 4) {
+    // Шаг 4 — тема документа
+    const themes = [
+      { key: 'orange', name: 'Оранжевый', cls: 't-orange' },
+      { key: 'blue', name: 'Синий', cls: 't-blue' },
+      { key: 'bw', name: 'Ч/б', cls: 't-bw' },
+    ];
+    const tiles = themes.map(t =>
+      `<div class="wizard-theme-card ${t.cls} ${wizardData.theme === t.key ? 'selected' : ''}" onclick="wizardData.theme='${t.key}'; renderWizard()">
+        <div class="preview"></div>
+        <div class="name">${t.name}</div>
+      </div>`).join('');
+    body.innerHTML = `
+      <div class="wizard-step-counter">Шаг 4 из 4</div>
+      <h2>Стиль документа</h2>
+      <p class="wizard-sub">Цвет акцентов на печати. Можно поменять в любой момент.</p>
+      <div class="wizard-themes">${tiles}</div>
+      <div class="wizard-footer">
+        <div class="left"><button class="btn" onclick="prevWizardStep()">← Назад</button></div>
+        <div class="right"><button class="btn btn-primary" onclick="finishWizard(false)">Готово! ✓</button></div>
+      </div>`;
+  }
+}
+function saveWizardCompany() {
+  wizardData.company.name = document.getElementById('w_name').value;
+  wizardData.company.slogan = document.getElementById('w_slogan').value;
+  wizardData.company.phone = document.getElementById('w_phone').value;
+  wizardData.company.email = document.getElementById('w_email').value;
+  wizardData.company.inn = document.getElementById('w_inn').value;
+}
+function loadWizardLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Это не изображение'); return; }
+  if (file.size > 1024 * 1024) { if (!confirm('Файл больше 1 МБ. Профиль раздуется. Продолжить?')) { e.target.value = ''; return; } }
+  const reader = new FileReader();
+  reader.onload = (ev) => { wizardData.logo = ev.target.result; renderWizard(); };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+function finishWizard(skipped) {
+  if (!skipped) {
+    // Сохраняем данные шага 2, если на нём были
+    if (wizardStep === 2) saveWizardCompany();
+    profile.company = wizardData.company;
+    profile.logo = wizardData.logo;
+    profile.theme = wizardData.theme;
+    profile.niche = wizardData.niche;
+    profile.configured = true;
+    saveProfile();
+    closeWizard();
+    // Применяем выбранную нишу (заменит шаблон сметы) и наши данные
+    loadNiche(profile.niche, true); // true = не перетирать данные компании из ниши
+    applyProfileToFields();
+  } else {
+    // Пропуск — забираем то что сейчас показано (дефолты ниши), чтобы профиль был непустым
+    profile.configured = true;
+    captureProfileFromFields();
+    closeWizard();
+  }
+}
+
 // init
 (function init() {
-  applyTheme('orange');
-  loadNiche('remont', false);
+  const loaded = loadProfile();
+  applyTheme(loaded ? (profile.theme || 'orange') : 'orange');
+  loadNiche(loaded ? (profile.niche || 'remont') : 'remont', loaded);
+  // Если профиль загружен — применяем наши данные поверх ниши
+  if (loaded && profile.configured) {
+    applyProfileToFields();
+    // Восстанавливаем счётчик документов
+    if (profile.docCounter) state.docCounter = profile.docCounter;
+  }
   // Дата по умолчанию — сегодня (ДД.ММ.ГГГГ)
   if (!val('cl_date')) {
     const t = new Date();
@@ -1484,10 +1794,14 @@ function pwaInstall() {
   }
   // Стартовый номер: № <текущий год>-001
   if (!val('cl_number')) {
-    state.docCounter = 1;
-    setVal('cl_number', formatDocNumber(String(new Date().getFullYear()), 1));
+    if (!state.docCounter) state.docCounter = 1;
+    setVal('cl_number', formatDocNumber(String(new Date().getFullYear()), state.docCounter || 1));
   }
+  // Привязываем автосохранение профиля к полям
+  watchProfileFields();
   renderDocAndTotals();
+  // Если не настраивали — запускаем визард
+  if (!loaded || !profile.configured) startWizard(false);
 })();
 </script>
 </body>
