@@ -1,0 +1,16 @@
+# Никогда не коммитить ключи подписи!
+*.keystore
+*.jks
+*.p12
+*.pem
+keystore/
+signing-key-info.txt
+
+# Временные файлы редакторов
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Системные
+desktop.ini
