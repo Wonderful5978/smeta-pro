@@ -1677,11 +1677,18 @@ function renderDoc() {
     <div class="doc-terms"><div class="doc-terms-title">Условия</div><div class="doc-terms-text">${esc(val('terms'))}\nСрок действия предложения: ${val('cl_valid')} дней.</div></div>
     <div class="doc-footer"><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Подпись / ${esc(val('c_name'))}</div></div><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Заказчик / ${esc(val('cl_name'))}</div></div></div>
     ${(() => {
-      const licEmail = profile && profile.company && profile.company.email && profile.company.email !== 'example.ru' ? profile.company.email : '';
+      // Берём email из ТЕКУЩЕГО поля (не из профиля) — чтобы видеть актуальное даже до сохранения
+      const emailField = val('c_email');
+      const licEmail = (emailField && emailField !== 'example.ru') ? emailField : '';
+      // licenseId — обязательно генерим если ещё нет
+      if (profile && !profile.licenseId) {
+        profile.licenseId = generateLicenseId();
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
+      }
       const licId = profile && profile.licenseId ? profile.licenseId : '';
-      if (!licEmail && !licId) return '';
       const parts = [];
       if (licEmail) parts.push('Лицензия: ' + esc(licEmail));
+      else parts.push('Лицензия');
       if (licId) parts.push('ID <span class="lic-id">' + esc(licId) + '</span>');
       parts.push('smeta-pro.pages.dev');
       return '<div class="doc-license">' + parts.join(' · ') + '</div>';
@@ -1915,6 +1922,11 @@ function loadProfile() {
     if (p && typeof p === 'object') {
       profile = Object.assign(profile, p);
       profile.company = Object.assign({ name: '', slogan: '', phone: '', email: '', inn: '' }, p.company || {});
+      // Если у существующего профиля ещё нет licenseId (старый профиль до фичи) — генерим
+      if (!profile.licenseId) {
+        profile.licenseId = generateLicenseId();
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
+      }
       return true;
     }
   } catch (e) { console.warn('Профиль не загрузился:', e); }
