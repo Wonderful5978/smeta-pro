@@ -658,7 +658,7 @@ td.cell-price-wrap { position: relative; }
     <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
     <div class="search-box" id="searchBox">
       <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 14 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 9 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
       <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">×</button>
       <div class="search-results" id="searchResults"></div>
     </div>
@@ -698,59 +698,6 @@ td.cell-price-wrap { position: relative; }
 <script>
 // ===== НИШИ + БАЗЫ РАСЦЕНОК =====
 const NICHES = {
-  remont: {
-    emoji: "🔨", title: "Ремонт квартир", objectLabel: "Объект / адрес",
-    company: "ИП Иванов · Ремонт под ключ", slogan: "Ремонт квартир и офисов в Москве",
-    object: "2-к квартира, 58 м², ул. Ленина 10",
-    terms: "• Стоимость материалов рассчитывается отдельно по факту закупки.\n• Сроки выполнения работ согласуются после подписания договора.\n• Гарантия на выполненные работы — 12 месяцев.",
-    presets: {
-      "Демонтаж": [
-        { name: "Демонтаж обоев", unit: "м²", price: 120 },
-        { name: "Демонтаж плитки", unit: "м²", price: 350 },
-        { name: "Демонтаж стяжки пола", unit: "м²", price: 450 },
-        { name: "Вынос мусора", unit: "мешок", price: 150 },
-      ],
-      "Стены": [
-        { name: "Грунтовка стен", unit: "м²", price: 80 },
-        { name: "Штукатурка стен по маякам", unit: "м²", price: 650 },
-        { name: "Шпаклёвка стен под покраску", unit: "м²", price: 450 },
-        { name: "Поклейка обоев", unit: "м²", price: 350 },
-        { name: "Укладка плитки на стены", unit: "м²", price: 1200 },
-      ],
-      "Полы": [
-        { name: "Стяжка пола", unit: "м²", price: 700 },
-        { name: "Укладка ламината", unit: "м²", price: 400 },
-        { name: "Укладка плитки на пол", unit: "м²", price: 1100 },
-        { name: "Установка плинтуса", unit: "м.п.", price: 200 },
-      ],
-      "Потолок": [
-        { name: "Натяжной потолок", unit: "м²", price: 550 },
-        { name: "Потолок из гипсокартона", unit: "м²", price: 900 },
-        { name: "Покраска потолка", unit: "м²", price: 350 },
-      ],
-      "Электрика": [
-        { name: "Монтаж точки (розетка/выключатель)", unit: "точка", price: 600 },
-        { name: "Штробление стен под проводку", unit: "м.п.", price: 250 },
-        { name: "Монтаж электрощита", unit: "шт", price: 4500 },
-      ],
-      "Сантехника": [
-        { name: "Установка смесителя", unit: "шт", price: 1500 },
-        { name: "Установка унитаза", unit: "шт", price: 2500 },
-        { name: "Разводка труб (точка)", unit: "точка", price: 2000 },
-      ],
-    },
-    seed: [
-      { title: "Демонтажные работы", items: [
-        { name: "Демонтаж обоев", unit: "м²", qty: 95, price: 120 },
-        { name: "Демонтаж плитки", unit: "м²", qty: 12, price: 350 },
-      ]},
-      { title: "Стены", items: [
-        { name: "Грунтовка стен", unit: "м²", qty: 95, price: 80 },
-        { name: "Штукатурка стен по маякам", unit: "м²", qty: 95, price: 650 },
-      ]},
-    ],
-  },
-
   cleaning: {
     emoji: "🧹", title: "Клининг", objectLabel: "Объект / адрес",
     company: "Клининг-сервис «Чисто»", slogan: "Профессиональная уборка помещений",
@@ -785,71 +732,6 @@ const NICHES = {
       { title: "Уборка квартиры", items: [
         { name: "Генеральная уборка", unit: "м²", qty: 75, price: 120 },
         { name: "Мытьё окон", unit: "шт", qty: 4, price: 350 },
-      ]},
-    ],
-  },
-
-  windows: {
-    emoji: "🪟", title: "Окна и двери", objectLabel: "Объект / адрес",
-    company: "ОкнаСервис", slogan: "Установка окон и дверей",
-    object: "Квартира, ул. Мира 12",
-    terms: "• Замер бесплатный при заказе.\n• Гарантия на изделия — 5 лет, на монтаж — 2 года.\n• Срок изготовления — 5–10 рабочих дней.",
-    presets: {
-      "Окна ПВХ": [
-        { name: "Окно 1-створчатое (до 0.8 м²)", unit: "шт", price: 8500 },
-        { name: "Окно 2-створчатое", unit: "шт", price: 14500 },
-        { name: "Окно 3-створчатое", unit: "шт", price: 19500 },
-        { name: "Балконный блок", unit: "шт", price: 22000 },
-      ],
-      "Монтаж": [
-        { name: "Демонтаж старого окна", unit: "шт", price: 1500 },
-        { name: "Монтаж окна", unit: "шт", price: 3500 },
-        { name: "Откосы (комплект)", unit: "шт", price: 2500 },
-        { name: "Отлив", unit: "шт", price: 1200 },
-        { name: "Подоконник", unit: "м.п.", price: 1500 },
-      ],
-      "Двери": [
-        { name: "Межкомнатная дверь (с установкой)", unit: "шт", price: 9000 },
-        { name: "Входная дверь (с установкой)", unit: "шт", price: 28000 },
-      ],
-    },
-    seed: [
-      { title: "Окна ПВХ", items: [
-        { name: "Окно 2-створчатое", unit: "шт", qty: 2, price: 14500 },
-        { name: "Балконный блок", unit: "шт", qty: 1, price: 22000 },
-      ]},
-      { title: "Монтаж", items: [
-        { name: "Монтаж окна", unit: "шт", qty: 3, price: 3500 },
-        { name: "Откосы (комплект)", unit: "шт", qty: 3, price: 2500 },
-      ]},
-    ],
-  },
-
-  ceilings: {
-    emoji: "⬜", title: "Натяжные потолки", objectLabel: "Объект / адрес",
-    company: "ПотолокМастер", slogan: "Натяжные потолки за 1 день",
-    object: "Квартира 2-к, ул. Кирова 8",
-    terms: "• Замер бесплатно.\n• Установка за 1 день, без грязи и пыли.\n• Гарантия 10 лет на полотно.",
-    presets: {
-      "Потолки": [
-        { name: "Матовый потолок", unit: "м²", price: 450 },
-        { name: "Глянцевый потолок", unit: "м²", price: 550 },
-        { name: "Сатиновый потолок", unit: "м²", price: 600 },
-        { name: "Двухуровневый потолок", unit: "м²", price: 1400 },
-        { name: "Потолок с фотопечатью", unit: "м²", price: 1200 },
-      ],
-      "Доп. элементы": [
-        { name: "Установка точечного светильника", unit: "шт", price: 350 },
-        { name: "Люстра (вывод и крюк)", unit: "шт", price: 500 },
-        { name: "Обход трубы", unit: "шт", price: 400 },
-        { name: "Парящий профиль с подсветкой", unit: "м.п.", price: 900 },
-        { name: "Карниз скрытый", unit: "м.п.", price: 600 },
-      ],
-    },
-    seed: [
-      { title: "Натяжные потолки", items: [
-        { name: "Матовый потолок", unit: "м²", qty: 45, price: 450 },
-        { name: "Установка точечного светильника", unit: "шт", qty: 8, price: 350 },
       ]},
     ],
   },
@@ -922,125 +804,6 @@ const NICHES = {
       ]},
       { title: "Обработка", items: [
         { name: "Ретушь фото", unit: "кадр", qty: 50, price: 250 },
-      ]},
-    ],
-  },
-
-  plumbing: {
-    emoji: "🚰", title: "Сантехника", objectLabel: "Объект / адрес",
-    company: "СантехМастер", slogan: "Монтаж и замена сантехники",
-    object: "Квартира 2-к, ул. Гагарина 15",
-    terms: "• Стоимость материалов оплачивается отдельно по факту.\n• Гарантия на работы — 12 месяцев.\n• Выезд мастера для замера — бесплатно при заказе.",
-    presets: {
-      "Установка сантехники": [
-        { name: "Установка унитаза", unit: "шт", price: 4500 },
-        { name: "Установка инсталляции с унитазом", unit: "шт", price: 9500 },
-        { name: "Установка раковины с тумбой", unit: "шт", price: 3500 },
-        { name: "Установка смесителя", unit: "шт", price: 2000 },
-        { name: "Установка ванны (акрил)", unit: "шт", price: 6500 },
-        { name: "Установка ванны (чугун/сталь)", unit: "шт", price: 8500 },
-        { name: "Установка душевой кабины", unit: "шт", price: 9000 },
-        { name: "Установка душевого трапа", unit: "шт", price: 3500 },
-        { name: "Установка полотенцесушителя", unit: "шт", price: 4500 },
-        { name: "Установка водонагревателя (бойлера)", unit: "шт", price: 5500 },
-        { name: "Подключение стиральной машины", unit: "шт", price: 3000 },
-        { name: "Подключение посудомоечной машины", unit: "шт", price: 3500 },
-      ],
-      "Разводка труб": [
-        { name: "Разводка ХВС/ГВС (точка)", unit: "точка", price: 3000 },
-        { name: "Разводка канализации (точка)", unit: "точка", price: 2500 },
-        { name: "Замена стояка водоснабжения", unit: "м.п.", price: 5500 },
-        { name: "Замена стояка канализации", unit: "м.п.", price: 4500 },
-        { name: "Установка коллектора", unit: "шт", price: 4500 },
-        { name: "Монтаж трубы (PPR/металлопластик)", unit: "м.п.", price: 600 },
-        { name: "Установка запорного крана", unit: "шт", price: 1200 },
-        { name: "Установка фильтра грубой очистки", unit: "шт", price: 1800 },
-        { name: "Установка системы фильтрации", unit: "шт", price: 4500 },
-        { name: "Установка счётчика воды", unit: "шт", price: 2500 },
-      ],
-      "Демонтаж и ремонт": [
-        { name: "Демонтаж старой сантехники", unit: "шт", price: 1200 },
-        { name: "Демонтаж ванны", unit: "шт", price: 2500 },
-        { name: "Прочистка канализации", unit: "услуга", price: 3000 },
-        { name: "Устранение течи (за точку)", unit: "точка", price: 1800 },
-        { name: "Замена сифона", unit: "шт", price: 1200 },
-        { name: "Замена гофры унитаза", unit: "шт", price: 1500 },
-      ],
-    },
-    seed: [
-      { title: "Установка сантехники", items: [
-        { name: "Установка унитаза", unit: "шт", qty: 1, price: 4500 },
-        { name: "Установка смесителя", unit: "шт", qty: 2, price: 2000 },
-        { name: "Установка раковины с тумбой", unit: "шт", qty: 1, price: 3500 },
-      ]},
-      { title: "Разводка труб", items: [
-        { name: "Разводка ХВС/ГВС (точка)", unit: "точка", qty: 4, price: 3000 },
-        { name: "Установка запорного крана", unit: "шт", qty: 2, price: 1200 },
-      ]},
-    ],
-  },
-
-  electric: {
-    emoji: "⚡", title: "Электромонтаж", objectLabel: "Объект / адрес",
-    company: "ЭлектроПрофи", slogan: "Электромонтажные работы под ключ",
-    object: "Квартира 3-к, ул. Энергетиков 7",
-    terms: "• Все работы проводятся согласно ПУЭ и ГОСТ.\n• Гарантия на работы — 24 месяца.\n• По окончании работ выдаётся акт скрытых работ.",
-    presets: {
-      "Проводка": [
-        { name: "Штробление под кабель (бетон)", unit: "м.п.", price: 350 },
-        { name: "Штробление под кабель (кирпич)", unit: "м.п.", price: 250 },
-        { name: "Прокладка кабеля до 3×2.5 мм²", unit: "м.п.", price: 100 },
-        { name: "Прокладка кабеля до 3×4 мм²", unit: "м.п.", price: 140 },
-        { name: "Прокладка кабеля в гофре", unit: "м.п.", price: 130 },
-        { name: "Установка распаечной коробки", unit: "шт", price: 600 },
-        { name: "Демонтаж старой проводки", unit: "м.п.", price: 100 },
-        { name: "Сверление отверстия в перегородке", unit: "шт", price: 250 },
-      ],
-      "Розетки и выключатели": [
-        { name: "Установка розетки/выключателя", unit: "точка", price: 700 },
-        { name: "Установка розетки с заземлением", unit: "точка", price: 800 },
-        { name: "Установка интернет-розетки RJ-45", unit: "точка", price: 900 },
-        { name: "Установка ТВ-розетки", unit: "точка", price: 800 },
-        { name: "Установка диммера", unit: "шт", price: 1200 },
-        { name: "Перенос розетки", unit: "точка", price: 1500 },
-      ],
-      "Щит и автоматика": [
-        { name: "Сборка щита (до 12 модулей)", unit: "шт", price: 7500 },
-        { name: "Сборка щита (12–24 модуля)", unit: "шт", price: 12500 },
-        { name: "Сборка щита (более 24 модулей)", unit: "шт", price: 18000 },
-        { name: "Установка автоматического выключателя", unit: "шт", price: 450 },
-        { name: "Установка УЗО / диффавтомата", unit: "шт", price: 850 },
-        { name: "Установка реле напряжения", unit: "шт", price: 1500 },
-        { name: "Замена счётчика электроэнергии", unit: "шт", price: 4500 },
-        { name: "Монтаж заземления (контур)", unit: "шт", price: 12000 },
-      ],
-      "Освещение": [
-        { name: "Установка люстры (стандарт)", unit: "шт", price: 2000 },
-        { name: "Установка люстры (сложная)", unit: "шт", price: 4000 },
-        { name: "Установка точечного светильника", unit: "шт", price: 500 },
-        { name: "Монтаж светодиодной ленты", unit: "м.п.", price: 350 },
-        { name: "Установка бра / настенного светильника", unit: "шт", price: 1200 },
-        { name: "Монтаж трекового освещения", unit: "м.п.", price: 900 },
-        { name: "Подключение датчика движения", unit: "шт", price: 1500 },
-      ],
-      "Подключение техники": [
-        { name: "Подключение варочной панели", unit: "шт", price: 3000 },
-        { name: "Подключение духового шкафа", unit: "шт", price: 2500 },
-        { name: "Подключение электроплиты", unit: "шт", price: 3500 },
-        { name: "Подключение водонагревателя", unit: "шт", price: 2000 },
-        { name: "Подключение электрического тёплого пола", unit: "шт", price: 4500 },
-      ],
-    },
-    seed: [
-      { title: "Проводка", items: [
-        { name: "Штробление под кабель (бетон)", unit: "м.п.", qty: 45, price: 350 },
-        { name: "Прокладка кабеля до 3×2.5 мм²", unit: "м.п.", qty: 80, price: 100 },
-      ]},
-      { title: "Розетки и выключатели", items: [
-        { name: "Установка розетки/выключателя", unit: "точка", qty: 22, price: 700 },
-      ]},
-      { title: "Щит", items: [
-        { name: "Сборка щита (12–24 модуля)", unit: "шт", qty: 1, price: 12500 },
       ]},
     ],
   },
@@ -1159,8 +922,8 @@ const NICHES = {
   },
 
   construction: {
-    emoji: "🏗", title: "Строительство", objectLabel: "Объект / адрес",
-    company: "СтройПроект", slogan: "Строительство домов, металлоконструкции, фасады",
+    emoji: "🏗", title: "Строительство и ремонт", objectLabel: "Объект / адрес",
+    company: "СтройПроект", slogan: "Строительство, ремонт, отделка, металлоконструкции",
     object: "Дом 120 м², КП «Сосновка», уч. 14",
     terms: "• Цена работ указана без стоимости материалов.\n• Геология и геодезия — отдельно, по факту.\n• Гарантия на конструктив — 5 лет, на отделку — 2 года.\n• Сроки и порядок оплаты — по этапам в договоре.",
     presets: {
@@ -1283,6 +1046,137 @@ const NICHES = {
         { name: "Скважина 30–50 м под воду", unit: "м.п.", price: 3500 },
         { name: "Дренаж по периметру дома", unit: "м.п.", price: 2500 },
         { name: "Газовый ввод (от ТУ)", unit: "услуга", price: 65000 },
+      ],
+      "Ремонт квартир: Демонтаж": [
+        { name: "Демонтаж обоев", unit: "м²", price: 120 },
+        { name: "Демонтаж плитки", unit: "м²", price: 350 },
+        { name: "Демонтаж стяжки пола", unit: "м²", price: 450 },
+        { name: "Вынос мусора", unit: "мешок", price: 150 },
+      ],
+      "Ремонт квартир: Стены (отделка)": [
+        { name: "Грунтовка стен", unit: "м²", price: 80 },
+        { name: "Шпаклёвка стен под покраску", unit: "м²", price: 450 },
+        { name: "Поклейка обоев", unit: "м²", price: 350 },
+        { name: "Укладка плитки на стены", unit: "м²", price: 1200 },
+      ],
+      "Ремонт квартир: Полы": [
+        { name: "Стяжка пола", unit: "м²", price: 700 },
+        { name: "Укладка ламината", unit: "м²", price: 400 },
+        { name: "Укладка плитки на пол", unit: "м²", price: 1100 },
+        { name: "Установка плинтуса", unit: "м.п.", price: 200 },
+      ],
+      "Ремонт квартир: Потолок": [
+        { name: "Потолок из гипсокартона", unit: "м²", price: 900 },
+        { name: "Покраска потолка", unit: "м²", price: 350 },
+      ],
+      "Окна и двери: Окна ПВХ": [
+        { name: "Окно 1-створчатое (до 0.8 м²)", unit: "шт", price: 8500 },
+        { name: "Окно 2-створчатое", unit: "шт", price: 14500 },
+        { name: "Окно 3-створчатое", unit: "шт", price: 19500 },
+        { name: "Балконный блок", unit: "шт", price: 22000 },
+      ],
+      "Окна и двери: Монтаж окон": [
+        { name: "Демонтаж старого окна", unit: "шт", price: 1500 },
+        { name: "Монтаж окна", unit: "шт", price: 3500 },
+        { name: "Откосы (комплект)", unit: "шт", price: 2500 },
+        { name: "Отлив", unit: "шт", price: 1200 },
+        { name: "Подоконник", unit: "м.п.", price: 1500 },
+      ],
+      "Окна и двери: Двери": [
+        { name: "Межкомнатная дверь (с установкой)", unit: "шт", price: 9000 },
+        { name: "Входная дверь (с установкой)", unit: "шт", price: 28000 },
+      ],
+      "Натяжные потолки": [
+        { name: "Матовый потолок", unit: "м²", price: 450 },
+        { name: "Глянцевый потолок", unit: "м²", price: 550 },
+        { name: "Сатиновый потолок", unit: "м²", price: 600 },
+        { name: "Двухуровневый потолок", unit: "м²", price: 1400 },
+        { name: "Потолок с фотопечатью", unit: "м²", price: 1200 },
+      ],
+      "Натяжные потолки: Доп. элементы": [
+        { name: "Установка точечного светильника", unit: "шт", price: 350 },
+        { name: "Люстра (вывод и крюк)", unit: "шт", price: 500 },
+        { name: "Обход трубы", unit: "шт", price: 400 },
+        { name: "Парящий профиль с подсветкой", unit: "м.п.", price: 900 },
+        { name: "Карниз скрытый", unit: "м.п.", price: 600 },
+      ],
+      "Сантехника: Установка": [
+        { name: "Установка унитаза", unit: "шт", price: 4500 },
+        { name: "Установка инсталляции с унитазом", unit: "шт", price: 9500 },
+        { name: "Установка раковины с тумбой", unit: "шт", price: 3500 },
+        { name: "Установка смесителя", unit: "шт", price: 2000 },
+        { name: "Установка ванны (акрил)", unit: "шт", price: 6500 },
+        { name: "Установка ванны (чугун/сталь)", unit: "шт", price: 8500 },
+        { name: "Установка душевой кабины", unit: "шт", price: 9000 },
+        { name: "Установка душевого трапа", unit: "шт", price: 3500 },
+        { name: "Установка полотенцесушителя", unit: "шт", price: 4500 },
+        { name: "Установка водонагревателя (бойлера)", unit: "шт", price: 5500 },
+        { name: "Подключение стиральной машины", unit: "шт", price: 3000 },
+        { name: "Подключение посудомоечной машины", unit: "шт", price: 3500 },
+      ],
+      "Сантехника: Разводка труб": [
+        { name: "Разводка ХВС/ГВС (точка)", unit: "точка", price: 3000 },
+        { name: "Разводка канализации (точка)", unit: "точка", price: 2500 },
+        { name: "Замена стояка водоснабжения", unit: "м.п.", price: 5500 },
+        { name: "Замена стояка канализации", unit: "м.п.", price: 4500 },
+        { name: "Установка коллектора", unit: "шт", price: 4500 },
+        { name: "Монтаж трубы (PPR/металлопластик)", unit: "м.п.", price: 600 },
+        { name: "Установка запорного крана", unit: "шт", price: 1200 },
+        { name: "Установка фильтра грубой очистки", unit: "шт", price: 1800 },
+        { name: "Установка системы фильтрации", unit: "шт", price: 4500 },
+        { name: "Установка счётчика воды", unit: "шт", price: 2500 },
+      ],
+      "Сантехника: Демонтаж и ремонт": [
+        { name: "Демонтаж старой сантехники", unit: "шт", price: 1200 },
+        { name: "Демонтаж ванны", unit: "шт", price: 2500 },
+        { name: "Прочистка канализации", unit: "услуга", price: 3000 },
+        { name: "Устранение течи (за точку)", unit: "точка", price: 1800 },
+        { name: "Замена сифона", unit: "шт", price: 1200 },
+        { name: "Замена гофры унитаза", unit: "шт", price: 1500 },
+      ],
+      "Электромонтаж: Проводка": [
+        { name: "Штробление под кабель (бетон)", unit: "м.п.", price: 350 },
+        { name: "Штробление под кабель (кирпич)", unit: "м.п.", price: 250 },
+        { name: "Прокладка кабеля до 3×2.5 мм²", unit: "м.п.", price: 100 },
+        { name: "Прокладка кабеля до 3×4 мм²", unit: "м.п.", price: 140 },
+        { name: "Прокладка кабеля в гофре", unit: "м.п.", price: 130 },
+        { name: "Установка распаечной коробки", unit: "шт", price: 600 },
+        { name: "Демонтаж старой проводки", unit: "м.п.", price: 100 },
+        { name: "Сверление отверстия в перегородке", unit: "шт", price: 250 },
+      ],
+      "Электромонтаж: Розетки и выключатели": [
+        { name: "Установка розетки/выключателя", unit: "точка", price: 700 },
+        { name: "Установка розетки с заземлением", unit: "точка", price: 800 },
+        { name: "Установка интернет-розетки RJ-45", unit: "точка", price: 900 },
+        { name: "Установка ТВ-розетки", unit: "точка", price: 800 },
+        { name: "Установка диммера", unit: "шт", price: 1200 },
+        { name: "Перенос розетки", unit: "точка", price: 1500 },
+      ],
+      "Электромонтаж: Щит и автоматика": [
+        { name: "Сборка щита (до 12 модулей)", unit: "шт", price: 7500 },
+        { name: "Сборка щита (12–24 модуля)", unit: "шт", price: 12500 },
+        { name: "Сборка щита (более 24 модулей)", unit: "шт", price: 18000 },
+        { name: "Установка автоматического выключателя", unit: "шт", price: 450 },
+        { name: "Установка УЗО / диффавтомата", unit: "шт", price: 850 },
+        { name: "Установка реле напряжения", unit: "шт", price: 1500 },
+        { name: "Замена счётчика электроэнергии", unit: "шт", price: 4500 },
+        { name: "Монтаж заземления (контур)", unit: "шт", price: 12000 },
+      ],
+      "Электромонтаж: Освещение": [
+        { name: "Установка люстры (стандарт)", unit: "шт", price: 2000 },
+        { name: "Установка люстры (сложная)", unit: "шт", price: 4000 },
+        { name: "Установка точечного светильника", unit: "шт", price: 500 },
+        { name: "Монтаж светодиодной ленты", unit: "м.п.", price: 350 },
+        { name: "Установка бра / настенного светильника", unit: "шт", price: 1200 },
+        { name: "Монтаж трекового освещения", unit: "м.п.", price: 900 },
+        { name: "Подключение датчика движения", unit: "шт", price: 1500 },
+      ],
+      "Электромонтаж: Подключение техники": [
+        { name: "Подключение варочной панели", unit: "шт", price: 3000 },
+        { name: "Подключение духового шкафа", unit: "шт", price: 2500 },
+        { name: "Подключение электроплиты", unit: "шт", price: 3500 },
+        { name: "Подключение водонагревателя", unit: "шт", price: 2000 },
+        { name: "Подключение электрического тёплого пола", unit: "шт", price: 4500 },
       ],
       "Металлоконструкции: Заборы": [
         { name: "Забор из профнастила (с установкой)", unit: "м.п.", price: 3200 },
@@ -1574,7 +1468,7 @@ const NICHES = {
   },
 };
 
-let currentNiche = "remont";
+let currentNiche = "construction";
 let state = { sections: [], vatOn: false, logo: null, docCounter: 0 };
 
 function id() { return Math.random().toString(36).slice(2, 9); }
@@ -2357,7 +2251,8 @@ function importJSON(e) {
   reader.onload = (ev) => {
     try {
       const d = JSON.parse(ev.target.result);
-      if (d.niche === 'welding') d.niche = 'construction'; // миграция
+      // Миграция: 6 ниш слиты в «Строительство»
+      if (['welding','remont','windows','ceilings','plumbing','electric'].includes(d.niche)) d.niche = 'construction';
       if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
       if (d.company) { setVal('c_name', d.company.name); setVal('c_slogan', d.company.slogan); setVal('c_phone', d.company.phone); setVal('c_email', d.company.email); setVal('c_inn', d.company.inn); }
       if (d.docType) setVal('d_type', d.docType);
@@ -2455,7 +2350,7 @@ let profile = {
   company: { name: '', slogan: '', phone: '+7 (999) 123-45-67', email: 'example.ru', inn: '' },
   logo: null,
   theme: 'orange',
-  niche: 'remont',
+  niche: 'construction',
   docCounter: 0,
   licenseId: null, // генерится один раз при первом сохранении, не меняется
 };
@@ -2616,7 +2511,8 @@ function collectDocSnapshot() {
 
 // Применить снапшот в поля приложения
 function applyDocSnapshot(d) {
-  if (d.niche === 'welding') d.niche = 'construction'; // миграция
+  // Миграция: 6 ниш слиты в «Строительство»
+  if (['welding','remont','windows','ceilings','plumbing','electric'].includes(d.niche)) d.niche = 'construction';
   if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
   if (d.docType) setVal('d_type', d.docType);
   if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
@@ -3066,7 +2962,7 @@ function startWizard(isReopen) {
     company: { name: '', slogan: '', phone: '+7 (999) 123-45-67', email: '', inn: '' },
     logo: null,
     theme: 'orange',
-    niche: 'remont',
+    niche: 'construction',
   };
   document.getElementById('wizardOverlay').classList.remove('hidden');
   renderWizard();
@@ -3195,8 +3091,10 @@ function finishWizard(skipped) {
   const loaded = loadProfile();
   loadLearnedData();
   applyTheme(loaded ? (profile.theme || 'orange') : 'orange');
-  if (profile.niche === 'welding') profile.niche = 'construction'; // миграция
-  loadNiche(loaded ? (profile.niche || 'remont') : 'remont', loaded);
+  // Миграция: 6 ниш слиты в «Строительство»
+  const MERGED_INTO_CONSTRUCTION = ['welding', 'remont', 'windows', 'ceilings', 'plumbing', 'electric'];
+  if (MERGED_INTO_CONSTRUCTION.includes(profile.niche)) profile.niche = 'construction';
+  loadNiche(loaded ? (profile.niche || 'construction') : 'construction', loaded);
   // Если профиль загружен — применяем наши данные поверх ниши
   if (loaded && profile.configured) {
     applyProfileToFields();
