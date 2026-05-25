@@ -2,7 +2,7 @@
 // Стратегия: cache-first. После первой загрузки приложение работает оффлайн.
 // При обновлении версии — меняй CACHE_NAME, тогда старый кэш почистится.
 
-const CACHE_NAME = 'smeta-pro-full-v23';
+const CACHE_NAME = 'smeta-pro-full-v24';
 const CORE_ASSETS = [
   './',
   './index.html',

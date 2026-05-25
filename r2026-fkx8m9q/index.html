@@ -397,93 +397,68 @@ td.cell-price-wrap { position: relative; }
   .app { padding: 0 12px 60px; }
   .panel { padding: 16px 14px; border-radius: 14px; }
 
-  /* Таблица работ — на мобиле каждая строка превращается в КАРТОЧКУ.
-     Это решает проблему наезжающих заголовков и съезжающих колонок на узких экранах. */
+  /* Таблица работ на мобиле — компактная карточка с переносом полей через flex-wrap.
+     Без подписей "РАБОТА/ЦЕНА" на каждой строке (шум). Подсказки — через placeholder. */
   .section-block { overflow: visible; }
   table.items { display: block; width: 100%; }
-  table.items thead { display: none; } /* На мобиле заголовки колонок не нужны — у каждого поля своя подпись */
+  table.items thead { display: none; }
   table.items tbody { display: block; width: 100%; }
   table.items tr {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto auto;
-    grid-template-areas:
-      "handle handle handle handle"
-      "name name name name"
-      "qty unit unit unit"
-      "price price disc disc"
-      "sum sum dup del";
-    gap: 10px 8px;
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
     background: var(--panel-2);
     border: 1px solid var(--line-solid);
-    border-radius: 12px;
-    padding: 14px 14px 12px;
-    margin-bottom: 10px;
+    border-radius: 10px;
+    margin-bottom: 6px;
   }
   table.items td {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 0 !important;
-    border: none !important;
-    width: auto !important;
-    text-align: left !important;
-    white-space: normal !important;
+    padding: 0 !important; border: none !important;
+    text-align: left !important; white-space: normal !important;
+    flex-shrink: 0; min-width: 0;
   }
-  /* Подпись поля над инпутом */
-  table.items td[data-label]::before {
-    content: attr(data-label);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-  }
+  table.items td::before { display: none !important; }
   table.items td input {
-    width: 100% !important;
-    font-size: 16px;
-    padding: 10px 12px;
-    box-sizing: border-box;
+    width: 100%; font-size: 16px;
+    padding: 8px 8px; box-sizing: border-box;
+    text-align: center;
   }
-  /* Раскладка по местам */
-  table.items td.row-handle { grid-area: handle; flex-direction: row; align-items: center; justify-content: center; padding: 0 !important; opacity: 0.4; }
-  table.items td[data-label="Работа"] { grid-area: name; }
-  table.items td[data-label="Кол-во"] { grid-area: qty; }
-  table.items td[data-label="Ед."] { grid-area: unit; }
-  table.items td[data-label="Цена"] { grid-area: price; }
-  table.items td[data-label="Скидка %"] { grid-area: disc; }
-  table.items td[data-label="Сумма"] {
-    grid-area: sum;
-    align-self: center;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--accent);
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
+  /* === Ряд 1: ⋮⋮ [название работы..............] [×]  === */
+  table.items td.row-handle {
+    order: 1; flex: 0 0 18px;
+    align-self: center; text-align: center;
+    opacity: 0.4; font-size: 18px;
   }
-  table.items td[data-label="Сумма"]::before {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--muted);
+  table.items td[data-label="Работа"] {
+    order: 2; flex: 1 1 calc(100% - 70px); min-width: 0;
   }
-  table.items td.td-action {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+  table.items td[data-label="Работа"] input {
+    text-align: left; font-weight: 600; padding: 10px 12px;
   }
-  table.items td.td-action::before { display: none; }
-  /* Первая action-кнопка — Дублировать, вторая — Удалить */
-  table.items td.td-action:nth-of-type(8) { grid-area: dup; }
-  table.items td.td-action:nth-of-type(9) { grid-area: del; }
+  table.items td.td-action:nth-of-type(9) { /* del */
+    order: 3; flex: 0 0 36px; align-self: center;
+  }
+  /* === Ряд 2: [кол-во][ед][цена][%][===сумма===]  (dup скрыт)  === */
+  table.items td[data-label="Кол-во"] { order: 4; flex: 1 1 54px; min-width: 52px; }
+  table.items td[data-label="Ед."]    { order: 5; flex: 1 1 44px; min-width: 42px; }
+  table.items td[data-label="Цена"]   { order: 6; flex: 1 1 64px; min-width: 58px; }
+  table.items td[data-label="Скидка %"] { order: 7; flex: 1 1 48px; min-width: 44px; }
+  table.items td.cell-sum {
+    order: 8; flex: 1 1 80px; min-width: 70px;
+    align-self: center; text-align: right;
+    font-weight: 700; color: var(--accent);
+    font-size: 15px; white-space: nowrap;
+    padding: 6px 4px !important;
+  }
+  /* Дублирование строки убираем — мало кому нужно на мобиле, есть «Дублировать раздел» внизу */
+  table.items td.td-action:nth-of-type(8) { display: none; }
   table.items td.td-action .del-row {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    font-size: 18px;
-    border: 1px solid var(--line-solid);
-    background: var(--panel);
+    width: 36px; height: 36px;
+    border-radius: 8px; font-size: 16px;
+    border: 1px solid var(--line-solid); background: var(--panel);
+    display: flex; align-items: center; justify-content: center;
   }
-  .row-handle { font-size: 22px; padding: 4px 8px; touch-action: none; }
+  .row-handle { font-size: 18px; padding: 4px 6px; touch-action: none; }
 
   /* Меню Профиль/Недавние — на всю ширину снизу как bottom-sheet */
   .profile-menu-list, .recent-menu-list { right: 0 !important; left: 0 !important; min-width: 0 !important; max-width: 100vw !important; }
@@ -1818,8 +1793,8 @@ function renderSections() {
         <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
         <td data-label="Работа"><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
         <td data-label="Ед." style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
-        <td data-label="Кол-во" style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
-        <td data-label="Цена" style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
+        <td data-label="Кол-во" style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal" placeholder="Кол-во"></td>
+        <td data-label="Цена" style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" placeholder="Цена"></td>
         <td data-label="Скидка %" style="width:64px"><input class="num" value="${discDisplay}" placeholder="—" oninput="upd(${si},${ii},'discount',this.value)" inputmode="decimal" title="Скидка на эту строку, %" style="${disc > 0 ? 'color:#F87171;font-weight:600' : ''}"></td>
         <td class="cell-sum" data-label="Сумма">${fmt(rowSum(it))}</td>
         <td class="td-action" style="width:30px"><button class="del-row" onclick="dupRow(${si},${ii})" title="Дублировать строку" style="color:var(--ink-3)">⎘</button></td>
