@@ -26,9 +26,9 @@ site/
 
 | Кому | Какой URL давать |
 |---|---|
-| **Случайный посетитель сайта** | `https://smeta-pro.pages.dev/` (лендинг) |
-| **«Хочу попробовать перед покупкой»** | `https://smeta-pro.pages.dev/demo/` |
-| **После оплаты (личным письмом)** | `https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html` |
+| **Случайный посетитель сайта** | `https://kpsmeta.ru/` (лендинг) |
+| **«Хочу попробовать перед покупкой»** | `https://kpsmeta.ru/demo/` |
+| **После оплаты (личным письмом)** | `https://kpsmeta.ru/r2026-fkx8m9q/install.html` |
 
 ## Шаблон письма после оплаты
 
@@ -38,14 +38,14 @@ site/
 Спасибо за покупку Смета-Про. Вот всё что нужно для установки:
 
 🔗 Твоя персональная страница установки:
-https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html
+https://kpsmeta.ru/r2026-fkx8m9q/install.html
 
 Там есть инструкции для iPhone, Android и Windows.
 Сохрани эту ссылку — отсюда же будешь качать обновления.
 
 Прямые ссылки на файлы (если нужны):
-• Приложение в браузере: https://smeta-pro.pages.dev/r2026-fkx8m9q/
-• Android APK: https://smeta-pro.pages.dev/r2026-fkx8m9q/files/smeta-pro.apk
+• Приложение в браузере: https://kpsmeta.ru/r2026-fkx8m9q/
+• Android APK: https://kpsmeta.ru/r2026-fkx8m9q/files/smeta-pro.apk
 (Windows / Mac / Linux — устанавливается прямо из браузера Chrome/Edge как PWA, см. install.html)
 
 Если что-то не получится — отвечай на это письмо, помогу.
@@ -86,7 +86,7 @@ https://smeta-pro.pages.dev/r2026-fkx8m9q/install.html
 ⚠️ **APK сгенерирован для URL `/app/`** — после переезда папки `app/` → `r2026-fkx8m9q/` старый APK будет показывать 404. Нужно пересобрать через PWABuilder с URL:
 
 ```
-https://smeta-pro.pages.dev/r2026-fkx8m9q/
+https://kpsmeta.ru/r2026-fkx8m9q/
 ```
 
 Полная инструкция: `../_tools/HOW-TO-UPDATE-APK.md`.

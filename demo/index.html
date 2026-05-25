@@ -1922,7 +1922,7 @@ function renderDoc() {
     <div class="doc-footer"><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Подпись / ${esc(val('c_name'))}</div></div><div class="doc-sign"><div class="doc-sign-line"></div><div class="doc-sign-label">Заказчик / ${esc(val('cl_name'))}</div></div></div>
     <div class="demo-footer-stamp">
       🛒 Это документ из <b>ДЕМО-версии Смета-Про</b>. Не используйте его для реальных заказчиков — на нём остаётся водяной знак.
-      <span class="small">Полная версия без водяного знака — 1990 ₽ разовая оплата · smeta-pro.pages.dev</span>
+      <span class="small">Полная версия без водяного знака — 1990 ₽ разовая оплата · kpsmeta.ru</span>
     </div>
     ${(() => {
       // Берём email из ТЕКУЩЕГО поля (не из профиля) — чтобы видеть актуальное даже до сохранения
@@ -1938,7 +1938,7 @@ function renderDoc() {
       if (licEmail) parts.push('Лицензия: ' + esc(licEmail));
       else parts.push('Лицензия');
       if (licId) parts.push('ID <span class="lic-id">' + esc(licId) + '</span>');
-      parts.push('smeta-pro.pages.dev');
+      parts.push('kpsmeta.ru');
       return '<div class="doc-license">' + parts.join(' · ') + '</div>';
     })()}`;
 }
