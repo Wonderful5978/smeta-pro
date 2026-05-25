@@ -397,12 +397,93 @@ td.cell-price-wrap { position: relative; }
   .app { padding: 0 12px 60px; }
   .panel { padding: 16px 14px; border-radius: 14px; }
 
-  /* Таблица работ — горизонтальный скролл */
-  .section-block { overflow: hidden; }
-  table.items { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
-  table.items thead, table.items tbody, table.items tr { display: table; width: 100%; table-layout: fixed; min-width: 560px; }
-  table.items input { font-size: 16px; padding: 10px 6px; }
-  .row-handle { font-size: 18px; padding: 4px 8px; touch-action: none; }
+  /* Таблица работ — на мобиле каждая строка превращается в КАРТОЧКУ.
+     Это решает проблему наезжающих заголовков и съезжающих колонок на узких экранах. */
+  .section-block { overflow: visible; }
+  table.items { display: block; width: 100%; }
+  table.items thead { display: none; } /* На мобиле заголовки колонок не нужны — у каждого поля своя подпись */
+  table.items tbody { display: block; width: 100%; }
+  table.items tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    grid-template-areas:
+      "handle handle handle handle"
+      "name name name name"
+      "qty unit unit unit"
+      "price price disc disc"
+      "sum sum dup del";
+    gap: 10px 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-solid);
+    border-radius: 12px;
+    padding: 14px 14px 12px;
+    margin-bottom: 10px;
+  }
+  table.items td {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 !important;
+    border: none !important;
+    width: auto !important;
+    text-align: left !important;
+    white-space: normal !important;
+  }
+  /* Подпись поля над инпутом */
+  table.items td[data-label]::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  table.items td input {
+    width: 100% !important;
+    font-size: 16px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+  }
+  /* Раскладка по местам */
+  table.items td.row-handle { grid-area: handle; flex-direction: row; align-items: center; justify-content: center; padding: 0 !important; opacity: 0.4; }
+  table.items td[data-label="Работа"] { grid-area: name; }
+  table.items td[data-label="Кол-во"] { grid-area: qty; }
+  table.items td[data-label="Ед."] { grid-area: unit; }
+  table.items td[data-label="Цена"] { grid-area: price; }
+  table.items td[data-label="Скидка %"] { grid-area: disc; }
+  table.items td[data-label="Сумма"] {
+    grid-area: sum;
+    align-self: center;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  table.items td[data-label="Сумма"]::before {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  table.items td.td-action {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+  table.items td.td-action::before { display: none; }
+  /* Первая action-кнопка — Дублировать, вторая — Удалить */
+  table.items td.td-action:nth-of-type(8) { grid-area: dup; }
+  table.items td.td-action:nth-of-type(9) { grid-area: del; }
+  table.items td.td-action .del-row {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    border: 1px solid var(--line-solid);
+    background: var(--panel);
+  }
+  .row-handle { font-size: 22px; padding: 4px 8px; touch-action: none; }
 
   /* Меню Профиль/Недавние — на всю ширину снизу как bottom-sheet */
   .profile-menu-list, .recent-menu-list { right: 0 !important; left: 0 !important; min-width: 0 !important; max-width: 100vw !important; }
@@ -425,11 +506,76 @@ td.cell-price-wrap { position: relative; }
   /* Кнопки в подвалах разделов */
   .section-foot { padding: 10px; gap: 6px; }
   .section-foot .mini-btn { font-size: 12px; padding: 7px 10px; }
+
+  /* Визард: 3 колонки на iPhone слишком узко — переключаем на 2.
+     При 2 колонках на 390-430px ширине эмодзи и подписи помещаются нормально. */
+  .wizard-niches { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .wizard-niche-card { padding: 16px 8px; }
+  .wizard-niche-card .n { font-size: 13px; line-height: 1.25; }
+  .wizard-themes { grid-template-columns: 1fr 1fr; }
+  .wizard { padding: 20px 16px; }
+  .wizard h2 { font-size: 22px; }
+  .wizard .wizard-sub { font-size: 13px; margin-bottom: 18px; }
 }
 
 /* iOS sticky bug fix: на самих iOS-устройствах sticky иногда «отстаёт» от scroll.
    Принудительно говорим браузеру использовать composited layer */
 .topbar { will-change: transform; -webkit-transform: translateZ(0); transform: translateZ(0); }
+
+/* ===== Диалог «Поделиться» ===== */
+.share-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: shareFadeIn 180ms ease-out;
+}
+@keyframes shareFadeIn { from { opacity: 0 } to { opacity: 1 } }
+.share-modal {
+  background: var(--panel);
+  border: 1px solid var(--line-solid);
+  border-radius: 18px;
+  max-width: 480px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  padding: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+}
+.share-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.share-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+.share-close {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 28px; color: var(--muted);
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.share-close:hover { background: var(--panel-2); color: var(--ink); }
+.share-hint { color: var(--ink-2); font-size: 13px; margin-bottom: 18px; line-height: 1.4; }
+.share-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.share-tile {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 4px;
+  padding: 14px 14px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-solid);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  transition: all 140ms;
+}
+.share-tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.share-tile-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.share-tile-primary:hover { filter: brightness(1.05); }
+.share-tile-primary .share-desc { color: rgba(255,255,255,0.85); }
+.share-emoji { font-size: 24px; margin-bottom: 2px; }
+.share-name { font-size: 15px; font-weight: 700; }
+.share-desc { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+@media (max-width: 480px) {
+  .share-modal { padding: 18px; border-radius: 16px; }
+  .share-title { font-size: 18px; }
+  .share-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -454,22 +600,22 @@ td.cell-price-wrap { position: relative; }
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
     <input type="file" id="importProfileFile" accept=".json" style="display:none" onchange="importProfile(event)">
     <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
-    <button class="btn" onclick="sendByEmail()"><span class="btn-icon">📨</span> Email</button>
+    <button class="btn" onclick="openShareDialog()"><span class="btn-icon">📨</span> Отправить</button>
     <button class="btn" id="installBtn" onclick="pwaInstall()" style="display:none"><span class="btn-icon">⬇️</span> Установить</button>
     <div class="profile-menu" id="profileMenu">
       <button class="btn" onclick="toggleProfileMenu()"><span class="btn-icon">⚙️</span> Профиль ▾</button>
       <div class="profile-menu-list">
         <button class="profile-menu-item" onclick="applyProfileToFields(); closeProfileMenu()">↩ Подставить мои данные в поля</button>
         <div class="profile-menu-divider"></div>
-        <button class="profile-menu-item" onclick="exportProfile(); closeProfileMenu()">💾 Бэкап профиля в JSON</button>
-        <button class="profile-menu-item" onclick="document.getElementById('importProfileFile').click(); closeProfileMenu()">📂 Восстановить из JSON</button>
+        <button class="profile-menu-item" onclick="exportProfile(); closeProfileMenu()">💾 Сохранить копию данных</button>
+        <button class="profile-menu-item" onclick="document.getElementById('importProfileFile').click(); closeProfileMenu()">📂 Загрузить копию данных</button>
         <div class="profile-menu-divider"></div>
-        <button class="profile-menu-item" onclick="reopenWizard(); closeProfileMenu()">🪄 Запустить визард заново</button>
+        <button class="profile-menu-item" onclick="reopenWizard(); closeProfileMenu()">🪄 Настроить заново</button>
         <div class="profile-menu-divider"></div>
-        <button class="profile-menu-item danger" onclick="clearLearnedPrices(); closeProfileMenu()">🧠 Очистить выученные цены</button>
-        <button class="profile-menu-item danger" onclick="clearAllTemplates(); closeProfileMenu()">📑 Удалить мои шаблоны</button>
+        <button class="profile-menu-item danger" onclick="clearLearnedPrices(); closeProfileMenu()">🧠 Сбросить запомненные цены</button>
+        <button class="profile-menu-item danger" onclick="clearAllTemplates(); closeProfileMenu()">📑 Удалить мои шаблоны разделов</button>
         <div class="profile-menu-divider"></div>
-        <button class="profile-menu-item danger" onclick="resetProfile(); closeProfileMenu()">🗑 Сбросить профиль</button>
+        <button class="profile-menu-item danger" onclick="resetProfile(); closeProfileMenu()">🗑 Очистить все мои данные</button>
       </div>
     </div>
     <button class="btn btn-primary" onclick="printPDF()"><span class="btn-icon">📄</span> Печать в PDF</button>
@@ -1670,14 +1816,14 @@ function renderSections() {
       return `
       <tr data-si="${si}" data-ii="${ii}">
         <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
-        <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
-        <td style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
-        <td style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
-        <td style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
-        <td style="width:64px"><input class="num" value="${discDisplay}" placeholder="—" oninput="upd(${si},${ii},'discount',this.value)" inputmode="decimal" title="Скидка на эту строку, %" style="${disc > 0 ? 'color:#F87171;font-weight:600' : ''}"></td>
-        <td class="cell-sum">${fmt(rowSum(it))}</td>
-        <td style="width:30px"><button class="del-row" onclick="dupRow(${si},${ii})" title="Дублировать строку" style="color:var(--ink-3)">⎘</button></td>
-        <td style="width:30px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
+        <td data-label="Работа"><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
+        <td data-label="Ед." style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
+        <td data-label="Кол-во" style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
+        <td data-label="Цена" style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
+        <td data-label="Скидка %" style="width:64px"><input class="num" value="${discDisplay}" placeholder="—" oninput="upd(${si},${ii},'discount',this.value)" inputmode="decimal" title="Скидка на эту строку, %" style="${disc > 0 ? 'color:#F87171;font-weight:600' : ''}"></td>
+        <td class="cell-sum" data-label="Сумма">${fmt(rowSum(it))}</td>
+        <td class="td-action" style="width:30px"><button class="del-row" onclick="dupRow(${si},${ii})" title="Дублировать строку" style="color:var(--ink-3)">⎘</button></td>
+        <td class="td-action" style="width:30px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
       </tr>`;
     }).join('');
     return `
@@ -1955,8 +2101,9 @@ function printPDF() {
   window.print();
 }
 
-// ===== ОТПРАВКА ПО EMAIL =====
-function sendByEmail() {
+// ===== ОТПРАВКА ДОКУМЕНТА (Поделиться: PDF / мессенджеры / email) =====
+// Формируем текст письма-сопровождения
+function buildShareTextAndSubject() {
   const c = calc();
   const subject = `${val('d_type') || 'Смета'} ${val('cl_number') || ''}`.trim();
   const lines = [];
@@ -1983,11 +2130,129 @@ function sendByEmail() {
   lines.push(val('c_name') || '');
   if (val('c_phone')) lines.push(val('c_phone'));
   if (val('c_email')) lines.push(val('c_email'));
-  const body = encodeURIComponent(lines.join('\n'));
-  const sub = encodeURIComponent(subject);
-  // mailto: с пустым "to" — пользователь сам впишет получателя
-  window.location.href = `mailto:?subject=${sub}&body=${body}`;
+  return { subject, body: lines.join('\n') };
 }
+
+// Открыть диалог «Куда отправить?»
+function openShareDialog() {
+  // Удалить предыдущий диалог, если был
+  const old = document.getElementById('shareDialog');
+  if (old) old.remove();
+
+  const canShare = typeof navigator.share === 'function';
+  const overlay = document.createElement('div');
+  overlay.id = 'shareDialog';
+  overlay.className = 'share-overlay';
+  overlay.innerHTML = `
+    <div class="share-modal">
+      <div class="share-head">
+        <div class="share-title">Куда отправить?</div>
+        <button class="share-close" onclick="closeShareDialog()">×</button>
+      </div>
+      <div class="share-hint">Сначала сохрани PDF (кнопка ниже) — потом приложи его к сообщению.</div>
+      <div class="share-grid">
+        <button class="share-tile share-tile-primary" onclick="shareViaPrint()">
+          <div class="share-emoji">📄</div>
+          <div class="share-name">Сохранить PDF</div>
+          <div class="share-desc">Печать → «Сохранить как PDF»</div>
+        </button>
+        ${canShare ? `
+        <button class="share-tile" onclick="shareViaSystem()">
+          <div class="share-emoji">📤</div>
+          <div class="share-name">Поделиться…</div>
+          <div class="share-desc">Системное окно — WhatsApp, AirDrop, Files</div>
+        </button>` : ''}
+        <button class="share-tile" onclick="shareViaWhatsApp()">
+          <div class="share-emoji">💬</div>
+          <div class="share-name">WhatsApp</div>
+          <div class="share-desc">Откроет с готовым текстом</div>
+        </button>
+        <button class="share-tile" onclick="shareViaTelegram()">
+          <div class="share-emoji">✈️</div>
+          <div class="share-name">Telegram</div>
+          <div class="share-desc">Откроет с готовым текстом</div>
+        </button>
+        <button class="share-tile" onclick="shareViaEmail()">
+          <div class="share-emoji">📧</div>
+          <div class="share-name">Email</div>
+          <div class="share-desc">Откроет почтовое приложение</div>
+        </button>
+        <button class="share-tile" onclick="shareViaCopy()">
+          <div class="share-emoji">📋</div>
+          <div class="share-name">Скопировать текст</div>
+          <div class="share-desc">Вставишь куда угодно</div>
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeShareDialog(); });
+}
+
+function closeShareDialog() {
+  const d = document.getElementById('shareDialog');
+  if (d) d.remove();
+}
+
+function shareViaPrint() {
+  closeShareDialog();
+  // Используем существующую функцию печати → клиент сохранит как PDF
+  if (typeof printPDF === 'function') { printPDF(); }
+  else { window.print(); }
+}
+
+async function shareViaSystem() {
+  const { subject, body } = buildShareTextAndSubject();
+  try {
+    await navigator.share({ title: subject, text: body });
+    closeShareDialog();
+  } catch (e) {
+    // пользователь отменил — ничего страшного
+    if (e && e.name !== 'AbortError') alert('Не получилось открыть «Поделиться»: ' + e.message);
+  }
+}
+
+function shareViaWhatsApp() {
+  const { body } = buildShareTextAndSubject();
+  const url = `https://wa.me/?text=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+  closeShareDialog();
+}
+
+function shareViaTelegram() {
+  const { body } = buildShareTextAndSubject();
+  // Telegram share требует URL — используем kpsmeta.ru как placeholder
+  const url = `https://t.me/share/url?url=${encodeURIComponent('https://kpsmeta.ru/')}&text=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+  closeShareDialog();
+}
+
+function shareViaEmail() {
+  const { subject, body } = buildShareTextAndSubject();
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  closeShareDialog();
+}
+
+async function shareViaCopy() {
+  const { subject, body } = buildShareTextAndSubject();
+  const fullText = subject + '\n\n' + body;
+  try {
+    await navigator.clipboard.writeText(fullText);
+    // Лёгкая обратная связь
+    const tile = event && event.currentTarget;
+    if (tile) {
+      const old = tile.querySelector('.share-name').textContent;
+      tile.querySelector('.share-name').textContent = '✓ Скопировано!';
+      setTimeout(() => { tile.querySelector('.share-name').textContent = old; }, 1500);
+    }
+    setTimeout(closeShareDialog, 600);
+  } catch (e) {
+    alert('Не получилось скопировать: ' + e.message);
+  }
+}
+
+// Старое имя функции — оставляем для совместимости
+function sendByEmail() { openShareDialog(); }
 
 // ===== РЕДАКЦИЯ ДОКУМЕНТА =====
 function incrementRevision() {
