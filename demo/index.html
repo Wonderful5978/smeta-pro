@@ -658,7 +658,7 @@ td.cell-price-wrap { position: relative; }
     <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
     <div class="search-box" id="searchBox">
       <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 15 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 14 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
       <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">×</button>
       <div class="search-results" id="searchResults"></div>
     </div>
@@ -1160,7 +1160,7 @@ const NICHES = {
 
   construction: {
     emoji: "🏗", title: "Строительство", objectLabel: "Объект / адрес",
-    company: "СтройПроект", slogan: "Строительство домов под ключ",
+    company: "СтройПроект", slogan: "Строительство домов, металлоконструкции, фасады",
     object: "Дом 120 м², КП «Сосновка», уч. 14",
     terms: "• Цена работ указана без стоимости материалов.\n• Геология и геодезия — отдельно, по факту.\n• Гарантия на конструктив — 5 лет, на отделку — 2 года.\n• Сроки и порядок оплаты — по этапам в договоре.",
     presets: {
@@ -1274,16 +1274,6 @@ const NICHES = {
         { name: "Бетонирование под опору / столб", unit: "шт", price: 1500 },
         { name: "Полированный бетонный пол", unit: "м²", price: 3500 },
       ],
-      "Окна, двери, проёмы": [
-        { name: "Установка пластикового окна", unit: "шт", price: 4500 },
-        { name: "Установка большого окна (>3 м²)", unit: "шт", price: 9500 },
-        { name: "Монтажный шов по ГОСТ", unit: "м.п.", price: 550 },
-        { name: "Установка входной двери", unit: "шт", price: 6500 },
-        { name: "Установка межкомнатной двери", unit: "шт", price: 4500 },
-        { name: "Откосы пластиковые (комплект)", unit: "шт", price: 2800 },
-        { name: "Подоконник (установка)", unit: "м.п.", price: 1500 },
-        { name: "Отлив наружный", unit: "м.п.", price: 950 },
-      ],
       "Инженерные сети (ввод)": [
         { name: "Ввод воды в дом (от ТП)", unit: "м.п.", price: 1800 },
         { name: "Колодец канализационный (ж/б)", unit: "шт", price: 28000 },
@@ -1294,14 +1284,55 @@ const NICHES = {
         { name: "Дренаж по периметру дома", unit: "м.п.", price: 2500 },
         { name: "Газовый ввод (от ТУ)", unit: "услуга", price: 65000 },
       ],
-      "Черновая отделка": [
-        { name: "Цементная стяжка пола (до 70 мм)", unit: "м²", price: 850 },
-        { name: "Полусухая стяжка пола", unit: "м²", price: 750 },
-        { name: "Штукатурка стен по маякам", unit: "м²", price: 650 },
-        { name: "Машинная штукатурка стен", unit: "м²", price: 550 },
-        { name: "Грунтовка стен / потолков", unit: "м²", price: 80 },
-        { name: "Гипсокартон на потолок (с каркасом)", unit: "м²", price: 950 },
-        { name: "Утепление пола ППС 100 мм", unit: "м²", price: 350 },
+      "Металлоконструкции: Заборы": [
+        { name: "Забор из профнастила (с установкой)", unit: "м.п.", price: 3200 },
+        { name: "Забор из евроштакетника", unit: "м.п.", price: 2400 },
+        { name: "Забор из сетки-рабицы", unit: "м.п.", price: 900 },
+        { name: "Кованый забор (стандарт)", unit: "м.п.", price: 6500 },
+        { name: "Забор из 3D-сетки", unit: "м.п.", price: 1800 },
+        { name: "Бетонирование столба", unit: "шт", price: 1800 },
+        { name: "Установка металлического столба", unit: "шт", price: 850 },
+      ],
+      "Металлоконструкции: Ворота и калитки": [
+        { name: "Распашные ворота с калиткой (комплект)", unit: "комплект", price: 32000 },
+        { name: "Распашные ворота (без калитки)", unit: "шт", price: 22000 },
+        { name: "Откатные ворота (5 м)", unit: "шт", price: 52000 },
+        { name: "Откатные ворота с автоматикой", unit: "комплект", price: 78000 },
+        { name: "Кованые ворота (декор)", unit: "м²", price: 12500 },
+        { name: "Калитка металлическая", unit: "шт", price: 12000 },
+      ],
+      "Металлоконструкции: Навесы и козырьки": [
+        { name: "Навес односкатный (металл + поликарбонат)", unit: "м²", price: 3500 },
+        { name: "Навес арочный (металл + поликарбонат)", unit: "м²", price: 4200 },
+        { name: "Кованая беседка", unit: "м²", price: 18500 },
+        { name: "Козырёк над входом (простой)", unit: "шт", price: 12500 },
+        { name: "Козырёк над входом (с ковкой)", unit: "шт", price: 28500 },
+      ],
+      "Металлоконструкции: Лестницы и ограждения": [
+        { name: "Металлокаркас для лестницы (за марш)", unit: "марш", price: 35000 },
+        { name: "Лестница на косоурах (с ковкой)", unit: "марш", price: 55000 },
+        { name: "Ограждение балкона / лоджии", unit: "м.п.", price: 4500 },
+        { name: "Перила для лестницы (с ковкой)", unit: "м.п.", price: 5500 },
+        { name: "Поручни (нержавейка)", unit: "м.п.", price: 3500 },
+      ],
+      "Металлоконструкции: Каркасы": [
+        { name: "Каркас для теплицы (под поликарбонат)", unit: "м²", price: 1800 },
+        { name: "Каркас для веранды", unit: "м²", price: 2800 },
+        { name: "Каркас металлического сарая", unit: "м²", price: 3500 },
+        { name: "Несущие колонны (двутавр / труба)", unit: "м.п.", price: 4500 },
+        { name: "Кровельные фермы", unit: "м.п.", price: 3500 },
+        { name: "Бак для воды металлический (за куб.м)", unit: "м³", price: 18500 },
+        { name: "Дровник металлический", unit: "м²", price: 8500 },
+      ],
+      "Металлоконструкции: Сварочные работы": [
+        { name: "Сварка стыка (тонкий металл, до 6 мм)", unit: "стык", price: 850 },
+        { name: "Сварка стыка (толстый металл, 6+ мм)", unit: "стык", price: 1500 },
+        { name: "Резка металла (болгарка)", unit: "рез", price: 350 },
+        { name: "Гибка металла (за лист)", unit: "лист", price: 1500 },
+        { name: "Покраска металлоконструкции (грунт + краска)", unit: "м²", price: 350 },
+        { name: "Антикоррозийная обработка", unit: "м²", price: 250 },
+        { name: "Сверление отверстия в металле", unit: "шт", price: 100 },
+        { name: "Выезд сварщика (срочный ремонт)", unit: "выезд", price: 3500 },
       ],
       "Доп. услуги": [
         { name: "Снос ветхого строения", unit: "м²", price: 850 },
@@ -1447,74 +1478,6 @@ const NICHES = {
       ]},
       { title: "Интеграции", items: [
         { name: "Подключение онлайн-оплаты", unit: "услуга", qty: 1, price: 18000 },
-      ]},
-    ],
-  },
-
-  welding: {
-    emoji: "🔥", title: "Сварка / металлоконструкции", objectLabel: "Объект / адрес",
-    company: "МеталлПрофи", slogan: "Сварочные и металлоконструкции под ключ",
-    object: "Частный дом, ул. Ленина 14, забор + ворота",
-    terms: "• Замер бесплатный при заказе.\n• Используем сертифицированный металл (профильную трубу, листовую сталь).\n• Гарантия на сварные швы — 12 месяцев.\n• Стоимость монтажа на объекте — отдельно (выезд + установка).",
-    presets: {
-      "Заборы": [
-        { name: "Забор из профнастила (с установкой)", unit: "м.п.", price: 3200 },
-        { name: "Забор из евроштакетника", unit: "м.п.", price: 2400 },
-        { name: "Забор из сетки-рабицы", unit: "м.п.", price: 900 },
-        { name: "Кованый забор (стандарт)", unit: "м.п.", price: 6500 },
-        { name: "Забор из 3D-сетки", unit: "м.п.", price: 1800 },
-        { name: "Бетонирование столба", unit: "шт", price: 1800 },
-        { name: "Установка металлического столба", unit: "шт", price: 850 },
-      ],
-      "Ворота, калитки": [
-        { name: "Распашные ворота с калиткой (комплект)", unit: "комплект", price: 32000 },
-        { name: "Распашные ворота (без калитки)", unit: "шт", price: 22000 },
-        { name: "Откатные ворота (5 м)", unit: "шт", price: 52000 },
-        { name: "Откатные ворота с автоматикой", unit: "комплект", price: 78000 },
-        { name: "Кованые ворота (декор)", unit: "м²", price: 12500 },
-        { name: "Калитка металлическая", unit: "шт", price: 12000 },
-      ],
-      "Навесы, козырьки": [
-        { name: "Навес односкатный (металл + поликарбонат)", unit: "м²", price: 3500 },
-        { name: "Навес арочный (металл + поликарбонат)", unit: "м²", price: 4200 },
-        { name: "Кованая беседка", unit: "м²", price: 18500 },
-        { name: "Козырёк над входом (простой)", unit: "шт", price: 12500 },
-        { name: "Козырёк над входом (с ковкой)", unit: "шт", price: 28500 },
-      ],
-      "Лестницы, ограждения": [
-        { name: "Металлокаркас для лестницы (за марш)", unit: "марш", price: 35000 },
-        { name: "Лестница на косоурах (с ковкой)", unit: "марш", price: 55000 },
-        { name: "Ограждение балкона / лоджии", unit: "м.п.", price: 4500 },
-        { name: "Перила для лестницы (с ковкой)", unit: "м.п.", price: 5500 },
-        { name: "Поручни (нержавейка)", unit: "м.п.", price: 3500 },
-      ],
-      "Каркасы и конструкции": [
-        { name: "Каркас для теплицы (под поликарбонат)", unit: "м²", price: 1800 },
-        { name: "Каркас для веранды", unit: "м²", price: 2800 },
-        { name: "Каркас металлического сарая", unit: "м²", price: 3500 },
-        { name: "Несущие колонны (двутавр / труба)", unit: "м.п.", price: 4500 },
-        { name: "Кровельные фермы", unit: "м.п.", price: 3500 },
-        { name: "Бак для воды металлический (за куб.м)", unit: "м³", price: 18500 },
-        { name: "Дровник металлический", unit: "м²", price: 8500 },
-      ],
-      "Сварочные и доп. работы": [
-        { name: "Сварка стыка (тонкий металл, до 6 мм)", unit: "стык", price: 850 },
-        { name: "Сварка стыка (толстый металл, 6+ мм)", unit: "стык", price: 1500 },
-        { name: "Резка металла (болгарка)", unit: "рез", price: 350 },
-        { name: "Гибка металла (за лист)", unit: "лист", price: 1500 },
-        { name: "Покраска металлоконструкции (грунт + краска)", unit: "м²", price: 350 },
-        { name: "Антикоррозийная обработка", unit: "м²", price: 250 },
-        { name: "Сверление отверстия в металле", unit: "шт", price: 100 },
-        { name: "Выезд сварщика (срочный ремонт)", unit: "выезд", price: 3500 },
-      ],
-    },
-    seed: [
-      { title: "Забор по периметру", items: [
-        { name: "Забор из профнастила (с установкой)", unit: "м.п.", qty: 40, price: 3200 },
-        { name: "Бетонирование столба", unit: "шт", qty: 14, price: 1800 },
-      ]},
-      { title: "Ворота и калитка", items: [
-        { name: "Распашные ворота с калиткой (комплект)", unit: "комплект", qty: 1, price: 32000 },
       ]},
     ],
   },
@@ -2394,6 +2357,7 @@ function importJSON(e) {
   reader.onload = (ev) => {
     try {
       const d = JSON.parse(ev.target.result);
+      if (d.niche === 'welding') d.niche = 'construction'; // миграция
       if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
       if (d.company) { setVal('c_name', d.company.name); setVal('c_slogan', d.company.slogan); setVal('c_phone', d.company.phone); setVal('c_email', d.company.email); setVal('c_inn', d.company.inn); }
       if (d.docType) setVal('d_type', d.docType);
@@ -2652,6 +2616,7 @@ function collectDocSnapshot() {
 
 // Применить снапшот в поля приложения
 function applyDocSnapshot(d) {
+  if (d.niche === 'welding') d.niche = 'construction'; // миграция
   if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
   if (d.docType) setVal('d_type', d.docType);
   if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
@@ -3230,6 +3195,7 @@ function finishWizard(skipped) {
   const loaded = loadProfile();
   loadLearnedData();
   applyTheme(loaded ? (profile.theme || 'orange') : 'orange');
+  if (profile.niche === 'welding') profile.niche = 'construction'; // миграция
   loadNiche(loaded ? (profile.niche || 'remont') : 'remont', loaded);
   // Если профиль загружен — применяем наши данные поверх ниши
   if (loaded && profile.configured) {
