@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <style>
 :root {
   --bg: #14110E;
@@ -141,6 +142,8 @@ table.items input.num { font-family: 'JetBrains Mono', monospace; text-align: ri
 .doc-company-contacts { font-size: 12px; color: var(--doc-ink-2); margin-top: 10px; line-height: 1.7; }
 .doc-meta { text-align: right; }
 .doc-type-badge { display: inline-block; background: var(--doc-accent); color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 12px; border-radius: 6px; }
+.doc-revision-badge { display: inline-block; background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; margin-left: 6px; border: 1px solid #FCD34D; }
+@media print { .doc-revision-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 .doc-number { font-size: 20px; font-weight: 700; margin-top: 10px; }
 .doc-date { font-size: 12px; color: var(--doc-ink-2); margin-top: 2px; }
 .doc-client { background: var(--doc-client-bg); border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
@@ -351,6 +354,7 @@ td.cell-price-wrap { position: relative; }
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
     <input type="file" id="importProfileFile" accept=".json" style="display:none" onchange="importProfile(event)">
     <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
+    <button class="btn" onclick="sendByEmail()"><span class="btn-icon">📨</span> Email</button>
     <button class="btn" id="installBtn" onclick="pwaInstall()" style="display:none"><span class="btn-icon">⬇️</span> Установить</button>
     <div class="profile-menu" id="profileMenu">
       <button class="btn" onclick="toggleProfileMenu()"><span class="btn-icon">⚙️</span> Профиль ▾</button>
@@ -447,6 +451,14 @@ td.cell-price-wrap { position: relative; }
       <div class="field"><label>Дата</label><input id="cl_date" oninput="render()"></div>
       <div class="field"><label>Срок действия (дней)</label><input id="cl_valid" value="14" oninput="render()"></div>
       <div class="field"><label>Предоплата (%)</label><input id="cl_prepay" value="50" oninput="render()"></div>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="field"><label>Редакция документа (для повторных правок)</label>
+        <div class="input-with-btn">
+          <input id="cl_revision" placeholder="например: 2" oninput="render()">
+          <button class="mini-btn" onclick="incrementRevision()" title="+1 к редакции">↻ +1</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1556,12 +1568,7 @@ function renderSections() {
       const disc = parseFloat(it.discount) || 0;
       const discDisplay = disc > 0 ? it.discount : '';
       return `
-      <tr draggable="true"
-          ondragstart="dragStart(event,${si},${ii})"
-          ondragend="dragEnd(event)"
-          ondragover="dragOver(event,${si},${ii})"
-          ondragleave="dragLeave(event)"
-          ondrop="dragDrop(event,${si},${ii})">
+      <tr data-si="${si}" data-ii="${ii}">
         <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
         <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
         <td style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
@@ -1600,6 +1607,27 @@ function dupRow(si, ii) {
   state.sections[si].items.splice(ii + 1, 0, copy);
   markDraftDirty();
   render();
+}
+// Инициализация SortableJS на всех tbody — работает и на десктопе, и на тач-устройствах
+function initSortableRows() {
+  if (typeof Sortable === 'undefined') return;
+  document.querySelectorAll('.section-block').forEach((block, si) => {
+    const tbody = block.querySelector('tbody');
+    if (!tbody) return;
+    Sortable.create(tbody, {
+      handle: '.row-handle',
+      animation: 150,
+      ghostClass: 'dragging',
+      onEnd: (evt) => {
+        if (evt.oldIndex === evt.newIndex) return;
+        const items = state.sections[si].items;
+        const [moved] = items.splice(evt.oldIndex, 1);
+        items.splice(evt.newIndex, 0, moved);
+        markDraftDirty();
+        render();
+      }
+    });
+  });
 }
 function upd(si, ii, key, v) {
   if (key === 'qty' || key === 'price' || key === 'discount') v = parseFloat(v.toString().replace(',', '.')) || 0;
@@ -1767,7 +1795,7 @@ function renderDoc() {
       <div class="doc-company-name">${esc(val('c_name'))}</div>
       <div class="doc-company-slogan">${esc(val('c_slogan'))}</div>
       <div class="doc-company-contacts">${val('c_phone') ? '☎ ' + esc(val('c_phone')) + '<br>' : ''}${val('c_email') ? '🌐 ' + esc(val('c_email')) + '<br>' : ''}${inn ? 'ИНН ' + esc(inn) : ''}</div>
-    </div></div><div class="doc-meta"><div class="doc-type-badge">${esc(val('d_type'))}</div><div class="doc-number">${esc(val('cl_number'))}</div><div class="doc-date">от ${esc(val('cl_date'))}</div></div></div>
+    </div></div><div class="doc-meta"><div class="doc-type-badge">${esc(val('d_type'))}${val('cl_revision') && parseInt(val('cl_revision'), 10) > 1 ? `<span class="doc-revision-badge">Ред. ${esc(val('cl_revision'))}</span>` : ''}</div><div class="doc-number">${esc(val('cl_number'))}</div><div class="doc-date">от ${esc(val('cl_date'))}</div></div></div>
     <div class="doc-client"><div class="doc-client-item"><div class="l">Заказчик</div><div class="v">${esc(val('cl_name'))}</div></div><div class="doc-client-item"><div class="l">${esc(NICHES[currentNiche].objectLabel)}</div><div class="v">${esc(val('cl_object'))}</div></div></div>
     ${sectionsHtml}
     <div class="doc-totals">${totalsHtml}</div>
@@ -1792,13 +1820,118 @@ function renderDoc() {
     })()}`;
 }
 function renderDocAndTotals() { renderDoc(); renderTotals(); }
-function render() { renderNicheBar(); renderPresets(); renderSections(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
+function render() { renderNicheBar(); renderPresets(); renderSections(); initSortableRows(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
 
 // Печать PDF с предварительным запоминанием цен
 function printPDF() {
   learnFromCurrentDoc();
   window.print();
 }
+
+// ===== ОТПРАВКА ПО EMAIL =====
+function sendByEmail() {
+  const c = calc();
+  const subject = `${val('d_type') || 'Смета'} ${val('cl_number') || ''}`.trim();
+  const lines = [];
+  lines.push(`Здравствуйте${val('cl_name') ? ', ' + val('cl_name') : ''}!`);
+  lines.push('');
+  lines.push(`Направляю ${(val('d_type') || 'смету').toLowerCase()} ${val('cl_number') || ''}`);
+  if (val('cl_object')) lines.push(`Объект: ${val('cl_object')}`);
+  lines.push(`Дата: ${val('cl_date')}`);
+  if (val('cl_revision')) lines.push(`Редакция: ${val('cl_revision')}`);
+  lines.push('');
+  lines.push('Состав работ:');
+  state.sections.forEach(s => {
+    const items = s.items.filter(it => it.name);
+    if (!items.length) return;
+    const ssum = items.reduce((a, it) => a + rowSum(it), 0);
+    lines.push(`• ${s.title} — ${fmt(ssum)}`);
+  });
+  lines.push('');
+  lines.push(`ИТОГО: ${fmt(c.total)}`);
+  if (num('cl_prepay') > 0) lines.push(`Предоплата ${num('cl_prepay')}%: ${fmt(c.total * num('cl_prepay') / 100)}`);
+  lines.push(`Срок действия предложения: ${val('cl_valid') || 14} дней`);
+  lines.push('');
+  lines.push(`С уважением,`);
+  lines.push(val('c_name') || '');
+  if (val('c_phone')) lines.push(val('c_phone'));
+  if (val('c_email')) lines.push(val('c_email'));
+  const body = encodeURIComponent(lines.join('\n'));
+  const sub = encodeURIComponent(subject);
+  // mailto: с пустым "to" — пользователь сам впишет получателя
+  window.location.href = `mailto:?subject=${sub}&body=${body}`;
+}
+
+// ===== РЕДАКЦИЯ ДОКУМЕНТА =====
+function incrementRevision() {
+  const cur = parseInt(val('cl_revision'), 10) || 1;
+  setVal('cl_revision', String(cur + 1));
+  markDraftDirty();
+  renderDocAndTotals();
+}
+
+// ===== UNDO (Ctrl+Z) =====
+const _undoStack = [];
+const _redoStack = [];
+const UNDO_LIMIT = 30;
+let _undoTimer = null;
+function snapshotForUndo() {
+  return JSON.stringify({
+    sections: state.sections,
+    vatOn: state.vatOn,
+    docCounter: state.docCounter,
+    cl: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
+    s: { discount: val('s_discount'), contingency: val('s_contingency'), vat: val('s_vat') },
+    terms: val('terms'),
+    dType: val('d_type'),
+  });
+}
+function pushUndoSnapshot() {
+  // debounce: за 700мс набора подряд — только один снапшот
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(() => {
+    const snap = snapshotForUndo();
+    if (_undoStack[_undoStack.length - 1] === snap) return;
+    _undoStack.push(snap);
+    if (_undoStack.length > UNDO_LIMIT) _undoStack.shift();
+    _redoStack.length = 0; // новое действие сбрасывает redo
+  }, 700);
+}
+function applyUndoSnapshot(raw) {
+  try {
+    const d = JSON.parse(raw);
+    state.sections = d.sections || [];
+    state.vatOn = !!d.vatOn;
+    document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn);
+    document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none';
+    document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none';
+    state.docCounter = d.docCounter || 0;
+    if (d.cl) { setVal('cl_name', d.cl.name); setVal('cl_object', d.cl.object); setVal('cl_number', d.cl.number); setVal('cl_date', d.cl.date); setVal('cl_valid', d.cl.valid); setVal('cl_prepay', d.cl.prepay); setVal('cl_revision', d.cl.revision); }
+    if (d.s) { setVal('s_discount', d.s.discount); setVal('s_contingency', d.s.contingency); setVal('s_vat', d.s.vat); }
+    if (d.terms !== undefined) setVal('terms', d.terms);
+    if (d.dType) setVal('d_type', d.dType);
+    render();
+  } catch (e) { console.warn('Undo не применился:', e); }
+}
+function doUndo() {
+  if (_undoStack.length < 2) return; // нужен хотя бы один прошлый + текущий
+  const current = _undoStack.pop();
+  _redoStack.push(current);
+  applyUndoSnapshot(_undoStack[_undoStack.length - 1]);
+}
+function doRedo() {
+  if (!_redoStack.length) return;
+  const snap = _redoStack.pop();
+  _undoStack.push(snap);
+  applyUndoSnapshot(snap);
+}
+// Хоткеи
+document.addEventListener('keydown', (e) => {
+  const isMac = navigator.platform.toLowerCase().includes('mac');
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+  if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+  else if (mod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); doRedo(); }
+});
 
 // ===== EXPORT XLSX =====
 function exportXLSX() {
@@ -1936,7 +2069,7 @@ function exportJSON() {
     niche: currentNiche,
     company: { name: val('c_name'), slogan: val('c_slogan'), phone: val('c_phone'), email: val('c_email'), inn: val('c_inn') },
     docType: val('d_type'),
-    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay') },
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
     settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
     terms: val('terms'), sections: state.sections,
     logo: state.logo || null,
@@ -1959,7 +2092,7 @@ function importJSON(e) {
       if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
       if (d.company) { setVal('c_name', d.company.name); setVal('c_slogan', d.company.slogan); setVal('c_phone', d.company.phone); setVal('c_email', d.company.email); setVal('c_inn', d.company.inn); }
       if (d.docType) setVal('d_type', d.docType);
-      if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
+      if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); setVal('cl_revision', d.client.revision || ''); }
       if (d.settings) { setVal('s_discount', d.settings.discount); setVal('s_contingency', d.settings.contingency); setVal('s_vat', d.settings.vat); state.vatOn = !!d.settings.vatOn; document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn); document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none'; document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none'; }
       if (d.terms) setVal('terms', d.terms);
       if (d.sections) state.sections = d.sections;
@@ -2162,7 +2295,7 @@ function collectDocSnapshot() {
   return {
     niche: currentNiche,
     docType: val('d_type'),
-    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay') },
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
     settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
     terms: val('terms'),
     sections: state.sections,
@@ -2213,8 +2346,8 @@ function loadDraft() {
   } catch (e) { return null; }
 }
 
-// Помечаем что данные изменились — следующий autosave подхватит
-function markDraftDirty() { draftDirty = true; }
+// Помечаем что данные изменились — следующий autosave подхватит + снапшот для undo
+function markDraftDirty() { draftDirty = true; if (typeof pushUndoSnapshot === 'function') pushUndoSnapshot(); }
 
 // Запускаем периодический autosave
 setInterval(saveDraft, 5000);
@@ -2773,7 +2906,7 @@ function finishWizard(skipped) {
   // Привязываем автосохранение профиля к полям
   watchProfileFields();
   // Привязываем markDraftDirty к полям клиента, настроек и условий
-  ['cl_name','cl_object','cl_number','cl_date','cl_valid','cl_prepay','s_discount','s_contingency','s_vat','terms'].forEach(id => {
+  ['cl_name','cl_object','cl_number','cl_date','cl_valid','cl_prepay','cl_revision','s_discount','s_contingency','s_vat','terms'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', markDraftDirty);
   });
