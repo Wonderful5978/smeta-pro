@@ -131,9 +131,21 @@ table.items input.num { font-family: 'JetBrains Mono', monospace; text-align: ri
 .mini-btn { font-family: inherit; font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line-solid); background: transparent; color: var(--ink-2); cursor: pointer; }
 .mini-btn:hover { background: #322a20; color: var(--ink); }
 .mini-btn.danger:hover { color: #F87171; border-color: #F8717140; }
-.presets-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.presets-bar { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .preset-chip { font-family: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 9999px; border: 1px solid var(--line-solid); background: var(--panel-2); color: var(--ink-2); cursor: pointer; }
 .preset-chip:hover { border-color: var(--accent); color: var(--accent-2); }
+.preset-group { display: flex; flex-direction: column; gap: 6px; }
+.preset-group-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-solid); background: var(--panel-2); color: var(--ink); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; transition: all 140ms; }
+.preset-group-head:hover { border-color: var(--accent); background: var(--panel); }
+.preset-group.open .preset-group-head { border-color: var(--accent); background: var(--accent-soft, rgba(234,88,12,0.08)); }
+.preset-group-head .pg-emoji { font-size: 18px; flex-shrink: 0; }
+.preset-group-head .pg-name { flex: 1; }
+.preset-group-head .pg-count { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background: var(--panel); color: var(--ink-3); }
+.preset-group-head .pg-arrow { font-size: 14px; color: var(--ink-3); flex-shrink: 0; }
+.preset-group-items { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 10px 14px; border-left: 2px solid var(--line-solid); margin-left: 14px; }
+.preset-subchip { font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 12px; border-radius: 9999px; border: 1px solid var(--line-solid); background: var(--panel); color: var(--ink-2); cursor: pointer; }
+.preset-subchip:hover { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+.preset-flat { align-self: flex-start; }
 .toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #322a2030; }
 .toggle-row:last-child { border-bottom: none; }
 .toggle-row .label { flex: 1; }
@@ -927,7 +939,7 @@ const NICHES = {
     object: "Дом 120 м², КП «Сосновка», уч. 14",
     terms: "• Цена работ указана без стоимости материалов.\n• Геология и геодезия — отдельно, по факту.\n• Гарантия на конструктив — 5 лет, на отделку — 2 года.\n• Сроки и порядок оплаты — по этапам в договоре.",
     presets: {
-      "Земляные работы": [
+      "Строительство: Земляные работы": [
         { name: "Расчистка участка от растительности", unit: "м²", price: 80 },
         { name: "Снятие плодородного слоя", unit: "м²", price: 120 },
         { name: "Разметка и геодезическая привязка", unit: "услуга", price: 12000 },
@@ -938,7 +950,7 @@ const NICHES = {
         { name: "Щебёночная подушка с трамбовкой", unit: "м³", price: 1500 },
         { name: "Планировка участка", unit: "м²", price: 200 },
       ],
-      "Фундамент": [
+      "Строительство: Фундамент": [
         { name: "Опалубка ленточного фундамента", unit: "м²", price: 750 },
         { name: "Армирование (вязка каркаса)", unit: "т", price: 18000 },
         { name: "Заливка бетоном (М300)", unit: "м³", price: 2200 },
@@ -950,7 +962,7 @@ const NICHES = {
         { name: "Гидроизоляция фундамента", unit: "м²", price: 350 },
         { name: "Утепление фундамента ЭППС 50 мм", unit: "м²", price: 650 },
       ],
-      "Стены и перегородки": [
+      "Строительство: Стены и перегородки": [
         { name: "Кладка газобетон 300 мм", unit: "м²", price: 1400 },
         { name: "Кладка газобетон 400 мм", unit: "м²", price: 1700 },
         { name: "Кладка кирпич облицовочный", unit: "м²", price: 2200 },
@@ -961,14 +973,14 @@ const NICHES = {
         { name: "Армопояс монолитный", unit: "м.п.", price: 1800 },
         { name: "Перемычка над проёмом", unit: "шт", price: 2500 },
       ],
-      "Перекрытия": [
+      "Строительство: Перекрытия": [
         { name: "Монолитное перекрытие (опалубка+бетон+арм.)", unit: "м²", price: 3800 },
         { name: "Монтаж плит ПК (с краном)", unit: "м²", price: 1500 },
         { name: "Деревянное перекрытие по балкам", unit: "м²", price: 2200 },
         { name: "Утепление перекрытия минватой 200 мм", unit: "м²", price: 650 },
         { name: "Пароизоляция перекрытия", unit: "м²", price: 180 },
       ],
-      "Кровля": [
+      "Строительство: Кровля": [
         { name: "Стропильная система (с пиломатериалом)", unit: "м²", price: 1800 },
         { name: "Стропильная система (только работа)", unit: "м²", price: 900 },
         { name: "Сплошная обрешётка ОСП", unit: "м²", price: 650 },
@@ -982,7 +994,7 @@ const NICHES = {
         { name: "Снегозадержатели", unit: "м.п.", price: 700 },
         { name: "Подшивка карнизов софитом", unit: "м.п.", price: 900 },
       ],
-      "Утепление фасада (внешнее)": [
+      "Строительство: Утепление фасада": [
         { name: "Утепление ЭППС/ППС 50 мм", unit: "м²", price: 550 },
         { name: "Утепление ЭППС/ППС 100 мм", unit: "м²", price: 750 },
         { name: "Утепление ЭППС/ППС 150 мм", unit: "м²", price: 950 },
@@ -995,7 +1007,7 @@ const NICHES = {
         { name: "Армирование сеткой + базовый слой", unit: "м²", price: 650 },
         { name: "Грунтование фасада", unit: "м²", price: 120 },
       ],
-      "Утепление внутреннее": [
+      "Строительство: Утепление внутреннее": [
         { name: "Утепление стен минватой 50 мм (изнутри)", unit: "м²", price: 550 },
         { name: "Утепление стен минватой 100 мм (изнутри)", unit: "м²", price: 750 },
         { name: "Утепление пола ППС 50 мм", unit: "м²", price: 250 },
@@ -1007,7 +1019,7 @@ const NICHES = {
         { name: "Пароизоляция стен/потолка", unit: "м²", price: 180 },
         { name: "Каркас под утеплитель (брус/профиль)", unit: "м²", price: 450 },
       ],
-      "Фасад (отделка)": [
+      "Строительство: Фасад (отделка)": [
         { name: "Декоративная штукатурка (короед)", unit: "м²", price: 750 },
         { name: "Декоративная штукатурка (шуба)", unit: "м²", price: 700 },
         { name: "Покраска фасада (1 слой)", unit: "м²", price: 200 },
@@ -1023,7 +1035,7 @@ const NICHES = {
         { name: "Откосы фасадные", unit: "м.п.", price: 950 },
         { name: "Подоконные отливы (внешние)", unit: "м.п.", price: 850 },
       ],
-      "Бетонные работы": [
+      "Строительство: Бетонные работы": [
         { name: "Бетонная отмостка (10–15 см с армированием)", unit: "м²", price: 1800 },
         { name: "Бетонная площадка под авто", unit: "м²", price: 2200 },
         { name: "Бетонная площадка под беседку", unit: "м²", price: 1500 },
@@ -1037,7 +1049,7 @@ const NICHES = {
         { name: "Бетонирование под опору / столб", unit: "шт", price: 1500 },
         { name: "Полированный бетонный пол", unit: "м²", price: 3500 },
       ],
-      "Инженерные сети (ввод)": [
+      "Строительство: Инженерные сети": [
         { name: "Ввод воды в дом (от ТП)", unit: "м.п.", price: 1800 },
         { name: "Колодец канализационный (ж/б)", unit: "шт", price: 28000 },
         { name: "Септик 3 куб.м (с монтажом)", unit: "комплект", price: 85000 },
@@ -1086,7 +1098,7 @@ const NICHES = {
         { name: "Межкомнатная дверь (с установкой)", unit: "шт", price: 9000 },
         { name: "Входная дверь (с установкой)", unit: "шт", price: 28000 },
       ],
-      "Натяжные потолки": [
+      "Натяжные потолки: Полотна": [
         { name: "Матовый потолок", unit: "м²", price: 450 },
         { name: "Глянцевый потолок", unit: "м²", price: 550 },
         { name: "Сатиновый потолок", unit: "м²", price: 600 },
@@ -1507,15 +1519,76 @@ function switchNiche(key) {
 }
 
 // ===== ПРЕСЕТЫ =====
+const GROUP_EMOJI = {
+  'Строительство':        '🏗',
+  'Ремонт квартир':       '🔨',
+  'Окна и двери':         '🪟',
+  'Натяжные потолки':     '⬜',
+  'Сантехника':           '🚰',
+  'Электромонтаж':        '⚡',
+  'Металлоконструкции':   '🔥',
+};
+let openedPresetGroup = null;
+
 function renderPresets() {
   const bar = document.getElementById('presetBar');
   const presets = NICHES[currentNiche].presets;
-  bar.innerHTML = Object.keys(presets).map(cat =>
-    `<button class="preset-chip" onclick="addPresetSection('${cat}')">+ ${cat}</button>`).join('');
+  const groups = {};
+  const ungrouped = [];
+  Object.keys(presets).forEach(key => {
+    const idx = key.indexOf(':');
+    if (idx === -1) {
+      ungrouped.push(key);
+    } else {
+      const prefix = key.slice(0, idx).trim();
+      const sub = key.slice(idx + 1).trim();
+      if (!groups[prefix]) groups[prefix] = [];
+      groups[prefix].push({ key, label: sub });
+    }
+  });
+  let html = '';
+  const groupOrder = [];
+  Object.keys(presets).forEach(key => {
+    const idx = key.indexOf(':');
+    if (idx === -1) return;
+    const prefix = key.slice(0, idx).trim();
+    if (!groupOrder.includes(prefix)) groupOrder.push(prefix);
+  });
+  html += groupOrder.map(prefix => {
+    const items = groups[prefix];
+    const emoji = GROUP_EMOJI[prefix] || '📁';
+    const isOpen = openedPresetGroup === prefix;
+    const arrow = isOpen ? '▾' : '▸';
+    return `
+      <div class="preset-group ${isOpen ? 'open' : ''}">
+        <button class="preset-group-head" onclick="togglePresetGroup('${esc(prefix)}')">
+          <span class="pg-emoji">${emoji}</span>
+          <span class="pg-name">${esc(prefix)}</span>
+          <span class="pg-count">${items.length}</span>
+          <span class="pg-arrow">${arrow}</span>
+        </button>
+        ${isOpen ? `<div class="preset-group-items">
+          ${items.map(it => `<button class="preset-subchip" onclick="addPresetSection('${esc(it.key).replace(/'/g, "\\'")}')">+ ${esc(it.label)}</button>`).join('')}
+        </div>` : ''}
+      </div>
+    `;
+  }).join('');
+  html += ungrouped.map(key =>
+    `<button class="preset-chip preset-flat" onclick="addPresetSection('${esc(key).replace(/'/g, "\\'")}')">+ ${esc(key)}</button>`
+  ).join('');
+  bar.innerHTML = html;
 }
+
+function togglePresetGroup(prefix) {
+  openedPresetGroup = (openedPresetGroup === prefix) ? null : prefix;
+  renderPresets();
+}
+
 function addPresetSection(cat) {
   const presets = NICHES[currentNiche].presets[cat];
-  state.sections.push({ id: id(), title: cat, items: presets.map(p => ({ id: id(), name: p.name, unit: p.unit, qty: 1, price: p.price })) });
+  const idx = cat.indexOf(':');
+  const sectionTitle = idx === -1 ? cat : cat.slice(idx + 1).trim();
+  state.sections.push({ id: id(), title: sectionTitle, items: presets.map(p => ({ id: id(), name: p.name, unit: p.unit, qty: 1, price: p.price })) });
   markDraftDirty();
   render();
 }
