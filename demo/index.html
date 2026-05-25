@@ -234,6 +234,24 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .profile-menu-restore { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-3); background: var(--panel-2); border-radius: 8px; margin-top: 6px; cursor: pointer; border: 1px solid var(--line-solid); }
 .profile-menu-restore:hover { color: var(--accent-2); border-color: var(--accent); }
 
+/* ===== БАННЕР "ДОСТУПНО ОБНОВЛЕНИЕ" ===== */
+.update-banner {
+  position: sticky; top: 0; z-index: 200;
+  background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+  color: white;
+  padding: 11px 20px;
+  font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.4);
+}
+.update-banner.hidden { display: none; }
+.update-banner .ub-icon { font-size: 18px; }
+.update-banner .ub-text { white-space: nowrap; }
+.update-banner .ub-btn { background: white; color: #15803D; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 13px; }
+.update-banner .ub-btn:hover { background: #DCFCE7; }
+.update-banner .ub-btn.ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5); }
+.update-banner .ub-btn.ghost:hover { background: rgba(255,255,255,0.12); }
+
 /* ===== БАННЕР ВОССТАНОВЛЕНИЯ ЧЕРНОВИКА ===== */
 .draft-banner { background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.45); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .draft-banner.hidden { display: none; }
@@ -363,6 +381,12 @@ td.cell-price-wrap { position: relative; }
 </style>
 </head>
 <body>
+<div class="update-banner hidden no-print" id="updateBanner">
+  <span class="ub-icon">✨</span>
+  <span class="ub-text">Доступно обновление Смета-Про</span>
+  <button class="ub-btn" onclick="applyUpdate()">Обновить сейчас</button>
+  <button class="ub-btn ghost" onclick="dismissUpdate()">Позже</button>
+</div>
 <div class="demo-bar no-print">
   <span class="demo-emoji">🛒</span>
   <span>Это <b>демо-версия</b>. Чтобы убрать водяной знак — <a href="../#buy">купи полную за 1990 ₽</a></span>
@@ -2143,10 +2167,51 @@ function importJSON(e) {
   reader.readAsText(file);
 }
 
-// ===== PWA: установка и оффлайн =====
+// ===== PWA: установка, оффлайн, обновления =====
+let _newWorker = null;
+let _refreshing = false;
+
+function showUpdateBanner() {
+  const b = document.getElementById('updateBanner');
+  if (b) b.classList.remove('hidden');
+}
+function dismissUpdate() {
+  const b = document.getElementById('updateBanner');
+  if (b) b.classList.add('hidden');
+}
+function applyUpdate() {
+  if (_newWorker) {
+    _newWorker.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    window.location.reload();
+  }
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW не зарегистрировался:', err));
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        _newWorker = reg.waiting;
+        showUpdateBanner();
+      }
+      reg.addEventListener('updatefound', () => {
+        const installing = reg.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            _newWorker = installing;
+            showUpdateBanner();
+          }
+        });
+      });
+      setInterval(() => reg.update().catch(() => {}), 3600000);
+    }).catch((err) => console.warn('SW не зарегистрировался:', err));
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_refreshing) return;
+      _refreshing = true;
+      window.location.reload();
+    });
   });
 }
 let deferredInstallPrompt = null;

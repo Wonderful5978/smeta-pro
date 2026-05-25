@@ -2,7 +2,7 @@
 // Стратегия: cache-first. После первой загрузки приложение работает оффлайн.
 // При обновлении версии — меняй CACHE_NAME, тогда старый кэш почистится.
 
-const CACHE_NAME = 'smeta-pro-demo-v9';
+const CACHE_NAME = 'smeta-pro-demo-v10';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -16,8 +16,12 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(CORE_ASSETS))
-      .then(() => self.skipWaiting())
   );
+});
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
