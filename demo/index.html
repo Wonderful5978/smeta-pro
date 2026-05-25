@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <style>
 :root {
   --bg: #14110E;
@@ -141,6 +142,8 @@ table.items input.num { font-family: 'JetBrains Mono', monospace; text-align: ri
 .doc-company-contacts { font-size: 12px; color: var(--doc-ink-2); margin-top: 10px; line-height: 1.7; }
 .doc-meta { text-align: right; }
 .doc-type-badge { display: inline-block; background: var(--doc-accent); color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 5px 12px; border-radius: 6px; }
+.doc-revision-badge { display: inline-block; background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; margin-left: 6px; border: 1px solid #FCD34D; }
+@media print { .doc-revision-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 .doc-number { font-size: 20px; font-weight: 700; margin-top: 10px; }
 .doc-date { font-size: 12px; color: var(--doc-ink-2); margin-top: 2px; }
 .doc-client { background: var(--doc-client-bg); border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
@@ -169,6 +172,26 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .doc-sign-label { color: var(--doc-ink-2); font-size: 11px; }
 .hint { background: var(--accent-soft); border: 1px solid var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 20px; }
 .hint b { color: var(--accent-2); }
+
+/* Маленькая строка с email лицензии в подвале PDF (защита от пиратства) */
+.doc-license {
+  margin-top: 22px;
+  padding-top: 10px;
+  border-top: 1px dashed #D5CFC4;
+  text-align: center;
+  font-size: 9px;
+  color: #999;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.doc-license .lic-id { font-family: 'JetBrains Mono', monospace; }
+@media print {
+  .doc-license {
+    color: #888 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
 
 /* ===== ВИЗАРД ПЕРВОГО ЗАПУСКА ===== */
 .wizard-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -211,6 +234,29 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .profile-menu-restore { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-3); background: var(--panel-2); border-radius: 8px; margin-top: 6px; cursor: pointer; border: 1px solid var(--line-solid); }
 .profile-menu-restore:hover { color: var(--accent-2); border-color: var(--accent); }
 
+/* ===== БАННЕР ВОССТАНОВЛЕНИЯ ЧЕРНОВИКА ===== */
+.draft-banner { background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.45); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.draft-banner.hidden { display: none; }
+.draft-banner-icon { font-size: 22px; }
+.draft-banner-text { flex: 1; min-width: 180px; }
+.draft-banner-text .t { font-size: 14px; font-weight: 600; color: #DDD6FE; }
+.draft-banner-text .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.draft-banner-actions { display: flex; gap: 8px; }
+
+/* ===== МЕНЮ НЕДАВНИХ ===== */
+.recent-menu { position: relative; }
+.recent-menu-list { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--panel); border: 1px solid var(--line-solid); border-radius: 12px; padding: 6px; min-width: 320px; max-width: 420px; max-height: 460px; overflow-y: auto; z-index: 60; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6); }
+.recent-menu.open .recent-menu-list { display: block; }
+.recent-item { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; background: transparent; border: none; color: var(--ink); font-family: inherit; cursor: pointer; width: 100%; text-align: left; }
+.recent-item:hover { background: var(--panel-2); }
+.recent-item .r-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.recent-item .r-num { font-size: 13px; font-weight: 700; }
+.recent-item .r-total { font-size: 13px; font-weight: 600; color: var(--accent-2); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.recent-item .r-meta { font-size: 11px; color: var(--ink-3); }
+.recent-item.empty { color: var(--ink-3); text-align: center; cursor: default; padding: 20px; font-size: 13px; }
+.recent-item.empty:hover { background: transparent; }
+.recent-divider { height: 1px; background: var(--line-solid); margin: 4px 6px; }
+
 /* ===== ПАМЯТЬ ЦЕН ===== */
 .learned-bar { background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
 .learned-bar.empty { display: none; }
@@ -231,6 +277,27 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 
 .learned-indicator { color: #A855F7; font-size: 13px; cursor: help; }
 td.cell-price-wrap { position: relative; }
+
+/* ===== ПОИСК ПО РАБОТАМ ===== */
+.search-box { position: relative; margin-bottom: 14px; }
+.search-input { width: 100%; padding: 12px 16px 12px 40px; font-family: inherit; font-size: 14px; background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 12px; color: var(--ink); transition: border 140ms; }
+.search-input:focus { outline: none; border-color: var(--accent); }
+.search-input::placeholder { color: var(--ink-3); }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 16px; pointer-events: none; }
+.search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--ink-3); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; }
+.search-clear:hover { color: var(--ink); background: var(--panel); }
+.search-results { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--panel); border: 1px solid var(--line-solid); border-radius: 12px; max-height: 380px; overflow-y: auto; z-index: 50; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6); }
+.search-box.has-results .search-results { display: block; }
+.search-result { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #322a2030; }
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: var(--panel-2); }
+.search-result .sr-info { flex: 1; min-width: 0; }
+.search-result .sr-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.search-result .sr-source { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.search-result.learned .sr-source { color: #C4B5FD; }
+.search-result .sr-price { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent-2); white-space: nowrap; }
+.search-result .sr-unit { color: var(--ink-3); font-size: 11px; margin-left: 4px; }
+.search-empty { padding: 18px 14px; text-align: center; color: var(--ink-3); font-size: 13px; }
 
 /* LOGO */
 .logo-field { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--panel-2); border: 1px dashed var(--line-solid); border-radius: 12px; }
@@ -271,50 +338,27 @@ td.cell-price-wrap { position: relative; }
 }
 
 /* ===== DEMO WATERMARK ===== */
-.demo-bar {
-  position: sticky; top: 0; z-index: 100;
-  background: linear-gradient(90deg, #EA580C 0%, #F59E0B 100%);
-  color: white;
-  padding: 10px 20px;
-  font-weight: 600; font-size: 14px; text-align: center;
-  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
-}
+.demo-bar { position: sticky; top: 0; z-index: 100; background: linear-gradient(90deg, #EA580C 0%, #F59E0B 100%); color: white; padding: 10px 20px; font-weight: 600; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .demo-bar a { color: white; text-decoration: underline; font-weight: 800; }
 .demo-bar a:hover { color: #FEF3C7; }
 .demo-bar .demo-emoji { font-size: 18px; }
-
 .document { position: relative; overflow: hidden; }
 .document::before {
   content: "DEMO · купите за 1990 ₽";
-  position: absolute;
-  top: 50%; left: 50%;
+  position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%) rotate(-30deg);
-  font-size: 92px; font-weight: 800;
-  color: rgba(234, 88, 12, 0.08);
+  font-size: 92px; font-weight: 800; color: rgba(234, 88, 12, 0.08);
   pointer-events: none; z-index: 1;
   white-space: nowrap; letter-spacing: -0.02em;
 }
 .document > * { position: relative; z-index: 2; }
-
-.demo-footer-stamp {
-  margin-top: 28px; padding: 14px 18px;
-  background: #FFF3E6; border: 2px dashed #EA580C; border-radius: 10px;
-  text-align: center; font-size: 13px; color: #7C2D12; font-weight: 600;
-}
+.demo-footer-stamp { margin-top: 28px; padding: 14px 18px; background: #FFF3E6; border: 2px dashed #EA580C; border-radius: 10px; text-align: center; font-size: 13px; color: #7C2D12; font-weight: 600; }
 .demo-footer-stamp b { color: #EA580C; font-size: 14px; }
 .demo-footer-stamp .small { display: block; margin-top: 4px; font-size: 11px; font-weight: 500; color: #92400E; }
-
 @media print {
   .demo-bar { display: none !important; }
-  .document::before {
-    color: rgba(234, 88, 12, 0.18) !important;
-    font-size: 110px !important;
-  }
-  .demo-footer-stamp {
-    page-break-inside: avoid;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+  .document::before { color: rgba(234, 88, 12, 0.18) !important; font-size: 110px !important; }
+  .demo-footer-stamp { page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>
 </head>
@@ -331,9 +375,14 @@ td.cell-price-wrap { position: relative; }
     </div>
     <button class="btn" onclick="exportJSON()"><span class="btn-icon">💾</span> Сохранить</button>
     <button class="btn" onclick="document.getElementById('importFile').click()"><span class="btn-icon">📂</span> Загрузить</button>
+    <div class="recent-menu" id="recentMenu">
+      <button class="btn" onclick="toggleRecentMenu()"><span class="btn-icon">🕒</span> Недавние ▾</button>
+      <div class="recent-menu-list" id="recentMenuList"></div>
+    </div>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
     <input type="file" id="importProfileFile" accept=".json" style="display:none" onchange="importProfile(event)">
     <button class="btn" onclick="exportXLSX()"><span class="btn-icon">📊</span> Excel</button>
+    <button class="btn" onclick="sendByEmail()"><span class="btn-icon">📨</span> Email</button>
     <button class="btn" id="installBtn" onclick="pwaInstall()" style="display:none"><span class="btn-icon">⬇️</span> Установить</button>
     <div class="profile-menu" id="profileMenu">
       <button class="btn" onclick="toggleProfileMenu()"><span class="btn-icon">⚙️</span> Профиль ▾</button>
@@ -369,6 +418,18 @@ td.cell-price-wrap { position: relative; }
   <div class="niche-bar no-print" id="nicheBar"></div>
 
   <div class="hint no-print">💡 <b>Совет:</b> при печати выбери «Сохранить как PDF» и убери колонтитулы (Колонтитулы → выкл). Свёрстано под A4.</div>
+
+  <div class="draft-banner hidden no-print" id="draftBanner">
+    <span class="draft-banner-icon">💾</span>
+    <div class="draft-banner-text">
+      <div class="t">Найден несохранённый черновик</div>
+      <div class="d" id="draftBannerInfo"></div>
+    </div>
+    <div class="draft-banner-actions">
+      <button class="btn btn-primary" onclick="restoreDraft()">↩ Восстановить</button>
+      <button class="btn" onclick="dismissDraft()">Начать новую</button>
+    </div>
+  </div>
 
   <div class="panel no-print">
     <div class="panel-head"><span class="num">1</span><h2>Ваша компания</h2></div>
@@ -419,10 +480,24 @@ td.cell-price-wrap { position: relative; }
       <div class="field"><label>Срок действия (дней)</label><input id="cl_valid" value="14" oninput="render()"></div>
       <div class="field"><label>Предоплата (%)</label><input id="cl_prepay" value="50" oninput="render()"></div>
     </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="field"><label>Редакция документа (для повторных правок)</label>
+        <div class="input-with-btn">
+          <input id="cl_revision" placeholder="например: 2" oninput="render()">
+          <button class="mini-btn" onclick="incrementRevision()" title="+1 к редакции">↻ +1</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="panel no-print">
     <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
+    <div class="search-box" id="searchBox">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 15 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">×</button>
+      <div class="search-results" id="searchResults"></div>
+    </div>
     <div class="learned-bar empty" id="learnedBar"></div>
     <div class="tmpl-bar empty" id="tmplBar"></div>
     <div class="presets-bar" id="presetBar"></div>
@@ -1420,6 +1495,7 @@ function renderPresets() {
 function addPresetSection(cat) {
   const presets = NICHES[currentNiche].presets[cat];
   state.sections.push({ id: id(), title: cat, items: presets.map(p => ({ id: id(), name: p.name, unit: p.unit, qty: 1, price: p.price })) });
+  markDraftDirty();
   render();
 }
 
@@ -1430,6 +1506,8 @@ const THEMES = {
   mono:   { name: "Чёрно-белый",   swatch: "#1A1714", accent: "#1A1714", section: "#F2F2F2", client: "#FAFAFA" },
 };
 let currentTheme = "orange";
+// Только применяет тему (CSS). Не сохраняет профиль — иначе при init
+// перетрёт только что загруженные данные пустыми полями (поля заполняются ПОСЛЕ applyTheme).
 function applyTheme(key) {
   const t = THEMES[key] || THEMES.orange;
   currentTheme = THEMES[key] ? key : "orange";
@@ -1439,6 +1517,7 @@ function applyTheme(key) {
   r.setProperty('--doc-client-bg', t.client);
   renderThemePicker();
 }
+// Обёртка для UI: меняет тему + сохраняет в профиль (используется в themePicker, визарде)
 function setTheme(key) {
   applyTheme(key);
   if (profile && profile.configured) {
@@ -1484,7 +1563,7 @@ function loadLogo(e) {
   if (!file.type.startsWith('image/')) { alert('Это не изображение'); return; }
   if (file.size > 1024 * 1024) { if (!confirm('Файл больше 1 МБ. Это раздует JSON. Продолжить?')) { e.target.value = ''; return; } }
   const reader = new FileReader();
-  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); if (typeof captureProfileFromFields === 'function') captureProfileFromFields(); };
+  reader.onload = (ev) => { state.logo = ev.target.result; renderLogoPreview(); renderDocAndTotals(); if (typeof captureProfileFromFields === 'function') captureProfileFromFields(); /* лого триггерит auto-configured */ };
   reader.readAsDataURL(file);
   e.target.value = '';
 }
@@ -1511,23 +1590,24 @@ function pluralItems(n) {
 }
 function renderSections() {
   document.getElementById('sections').innerHTML = state.sections.map((s, si) => {
-    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    const sum = s.items.reduce((a, it) => a + rowSum(it), 0);
     const cnt = s.items.length;
-    const rows = s.items.map((it, ii) => `
-      <tr draggable="true"
-          ondragstart="dragStart(event,${si},${ii})"
-          ondragend="dragEnd(event)"
-          ondragover="dragOver(event,${si},${ii})"
-          ondragleave="dragLeave(event)"
-          ondrop="dragDrop(event,${si},${ii})">
+    const rows = s.items.map((it, ii) => {
+      const disc = parseFloat(it.discount) || 0;
+      const discDisplay = disc > 0 ? it.discount : '';
+      return `
+      <tr data-si="${si}" data-ii="${ii}">
         <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
         <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
-        <td style="width:70px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
-        <td style="width:90px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
-        <td style="width:110px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
-        <td class="cell-sum">${fmt(it.qty * it.price)}</td>
-        <td style="width:34px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
-      </tr>`).join('');
+        <td style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
+        <td style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
+        <td style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
+        <td style="width:64px"><input class="num" value="${discDisplay}" placeholder="—" oninput="upd(${si},${ii},'discount',this.value)" inputmode="decimal" title="Скидка на эту строку, %" style="${disc > 0 ? 'color:#F87171;font-weight:600' : ''}"></td>
+        <td class="cell-sum">${fmt(rowSum(it))}</td>
+        <td style="width:30px"><button class="del-row" onclick="dupRow(${si},${ii})" title="Дублировать строку" style="color:var(--ink-3)">⎘</button></td>
+        <td style="width:30px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
+      </tr>`;
+    }).join('');
     return `
       <div class="section-block">
         <div class="section-head">
@@ -1536,7 +1616,7 @@ function renderSections() {
           <span class="section-sum">${fmt(sum)}</span>
         </div>
         <table class="items">
-          <thead><tr><th style="width:22px"></th><th>Наименование</th><th>Ед.</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r">Сумма</th><th></th></tr></thead>
+          <thead><tr><th style="width:22px"></th><th>Наименование</th><th>Ед.</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r" title="Скидка на строку, %">Скид.%</th><th class="r">Сумма</th><th></th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="section-foot">
@@ -1548,9 +1628,40 @@ function renderSections() {
       </div>`;
   }).join('');
 }
+// Дублировать строку (вставить копию сразу под текущей)
+function dupRow(si, ii) {
+  const orig = state.sections[si].items[ii];
+  const copy = { id: id(), name: orig.name, unit: orig.unit, qty: orig.qty, price: orig.price, discount: orig.discount };
+  state.sections[si].items.splice(ii + 1, 0, copy);
+  markDraftDirty();
+  render();
+}
+// Инициализация SortableJS на всех tbody — работает и на десктопе, и на тач-устройствах
+function initSortableRows() {
+  if (typeof Sortable === 'undefined') return;
+  document.querySelectorAll('.section-block').forEach((block, si) => {
+    const tbody = block.querySelector('tbody');
+    if (!tbody) return;
+    Sortable.create(tbody, {
+      handle: '.row-handle',
+      animation: 150,
+      ghostClass: 'dragging',
+      onEnd: (evt) => {
+        if (evt.oldIndex === evt.newIndex) return;
+        const items = state.sections[si].items;
+        const [moved] = items.splice(evt.oldIndex, 1);
+        items.splice(evt.newIndex, 0, moved);
+        markDraftDirty();
+        render();
+      }
+    });
+  });
+}
 function upd(si, ii, key, v) {
-  if (key === 'qty' || key === 'price') v = parseFloat(v.toString().replace(',', '.')) || 0;
+  if (key === 'qty' || key === 'price' || key === 'discount') v = parseFloat(v.toString().replace(',', '.')) || 0;
+  if (key === 'discount') v = Math.max(0, Math.min(100, v)); // 0-100%
   state.sections[si].items[ii][key] = v;
+  markDraftDirty();
   // ПАМЯТЬ ЦЕН:
   // 1) если меняем цену вручную (и она ненулевая) — запоминаем для этой работы
   if (key === 'price' && v > 0) {
@@ -1573,13 +1684,18 @@ function upd(si, ii, key, v) {
     }
   }
   renderDocAndTotals();
-  if (key === 'qty' || key === 'price' || nameChanged) renderSections();
+  if (key === 'qty' || key === 'price' || key === 'discount' || nameChanged) renderSections();
 }
-function updSection(si, v) { state.sections[si].title = v; renderDocAndTotals(); }
-function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); render(); }
-function delRow(si, ii) { state.sections[si].items.splice(ii, 1); render(); }
-function addSection() { state.sections.push({ id: id(), title: "Новый раздел", items: [{ id: id(), name: "", unit: "шт", qty: 1, price: 0 }] }); render(); }
-function delSection(si) { state.sections.splice(si, 1); render(); }
+// Сумма одной строки с учётом скидки строки (0-100%)
+function rowSum(it) {
+  const disc = parseFloat(it.discount) || 0;
+  return it.qty * it.price * (1 - disc / 100);
+}
+function updSection(si, v) { state.sections[si].title = v; markDraftDirty(); renderDocAndTotals(); }
+function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); markDraftDirty(); render(); }
+function delRow(si, ii) { state.sections[si].items.splice(ii, 1); markDraftDirty(); render(); }
+function addSection() { state.sections.push({ id: id(), title: "Новый раздел", items: [{ id: id(), name: "", unit: "шт", qty: 1, price: 0 }] }); markDraftDirty(); render(); }
+function delSection(si) { state.sections.splice(si, 1); markDraftDirty(); render(); }
 function dupSection(si) {
   const orig = state.sections[si];
   const copy = {
@@ -1588,11 +1704,13 @@ function dupSection(si) {
     items: orig.items.map(it => ({ id: id(), name: it.name, unit: it.unit, qty: it.qty, price: it.price })),
   };
   state.sections.splice(si + 1, 0, copy);
+  markDraftDirty();
   render();
 }
 function clearAll() {
   if (!confirm('Удалить ВСЕ разделы и работы? Действие нельзя отменить.\n\nСохрани документ в JSON, если он нужен.')) return;
   state.sections = [];
+  clearDraft();
   render();
 }
 
@@ -1650,7 +1768,8 @@ function toggleVat() {
 
 // ===== РАСЧЁТ =====
 function calc() {
-  const worksSum = state.sections.reduce((a, s) => a + s.items.reduce((b, it) => b + it.qty * it.price, 0), 0);
+  // worksSum считается с учётом скидок отдельных строк (item.discount)
+  const worksSum = state.sections.reduce((a, s) => a + s.items.reduce((b, it) => b + rowSum(it), 0), 0);
   const discountPct = num('s_discount');
   const contingencyPct = num('s_contingency');
   const discount = worksSum * discountPct / 100;
@@ -1676,14 +1795,20 @@ function renderDoc() {
   const c = calc();
   const inn = val('c_inn');
   const prepay = num('cl_prepay');
+  // Показывать колонку "Скидка" только если в смете есть хоть одна строка со скидкой > 0
+  const hasAnyDiscount = state.sections.some(s => s.items.some(it => (parseFloat(it.discount) || 0) > 0));
   const sectionsHtml = state.sections.map(s => {
-    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    const sum = s.items.reduce((a, it) => a + rowSum(it), 0);
     if (!s.items.length) return '';
-    const rows = s.items.filter(it => it.name).map((it, i) => `
-      <tr><td class="c">${i + 1}</td><td>${esc(it.name)}</td><td class="c">${esc(it.unit)}</td>
-      <td class="r">${it.qty}</td><td class="r">${fmt(it.price)}</td><td class="r">${fmt(it.qty * it.price)}</td></tr>`).join('');
+    const rows = s.items.filter(it => it.name).map((it, i) => {
+      const disc = parseFloat(it.discount) || 0;
+      const discCell = hasAnyDiscount ? `<td class="r">${disc > 0 ? '−' + disc + '%' : ''}</td>` : '';
+      return `<tr><td class="c">${i + 1}</td><td>${esc(it.name)}</td><td class="c">${esc(it.unit)}</td>
+      <td class="r">${it.qty}</td><td class="r">${fmt(it.price)}</td>${discCell}<td class="r">${fmt(rowSum(it))}</td></tr>`;
+    }).join('');
+    const discHeader = hasAnyDiscount ? '<th class="r" style="width:55px">Скидка</th>' : '';
     return `<div class="doc-section"><div class="doc-section-title">${esc(s.title)}</div>
-      <table class="doc-table"><thead><tr><th class="c" style="width:32px">№</th><th>Наименование</th><th class="c" style="width:50px">Ед.</th><th class="r" style="width:60px">Кол-во</th><th class="r" style="width:90px">Цена</th><th class="r" style="width:100px">Сумма</th></tr></thead>
+      <table class="doc-table"><thead><tr><th class="c" style="width:32px">№</th><th>Наименование</th><th class="c" style="width:50px">Ед.</th><th class="r" style="width:60px">Кол-во</th><th class="r" style="width:90px">Цена</th>${discHeader}<th class="r" style="width:100px">Сумма</th></tr></thead>
       <tbody>${rows}</tbody></table><div class="doc-section-sum">Итого по разделу: ${fmt(sum)}</div></div>`;
   }).join('');
   let totalsHtml = `<div class="doc-total-line"><span>Стоимость</span><span class="v">${fmt(c.worksSum)}</span></div>`;
@@ -1698,7 +1823,7 @@ function renderDoc() {
       <div class="doc-company-name">${esc(val('c_name'))}</div>
       <div class="doc-company-slogan">${esc(val('c_slogan'))}</div>
       <div class="doc-company-contacts">${val('c_phone') ? '☎ ' + esc(val('c_phone')) + '<br>' : ''}${val('c_email') ? '🌐 ' + esc(val('c_email')) + '<br>' : ''}${inn ? 'ИНН ' + esc(inn) : ''}</div>
-    </div></div><div class="doc-meta"><div class="doc-type-badge">${esc(val('d_type'))}</div><div class="doc-number">${esc(val('cl_number'))}</div><div class="doc-date">от ${esc(val('cl_date'))}</div></div></div>
+    </div></div><div class="doc-meta"><div class="doc-type-badge">${esc(val('d_type'))}${val('cl_revision') && parseInt(val('cl_revision'), 10) > 1 ? `<span class="doc-revision-badge">Ред. ${esc(val('cl_revision'))}</span>` : ''}</div><div class="doc-number">${esc(val('cl_number'))}</div><div class="doc-date">от ${esc(val('cl_date'))}</div></div></div>
     <div class="doc-client"><div class="doc-client-item"><div class="l">Заказчик</div><div class="v">${esc(val('cl_name'))}</div></div><div class="doc-client-item"><div class="l">${esc(NICHES[currentNiche].objectLabel)}</div><div class="v">${esc(val('cl_object'))}</div></div></div>
     ${sectionsHtml}
     <div class="doc-totals">${totalsHtml}</div>
@@ -1707,16 +1832,138 @@ function renderDoc() {
     <div class="demo-footer-stamp">
       🛒 Это документ из <b>ДЕМО-версии Смета-Про</b>. Не используйте его для реальных заказчиков — на нём остаётся водяной знак.
       <span class="small">Полная версия без водяного знака — 1990 ₽ разовая оплата · smeta-pro.pages.dev</span>
-    </div>`;
+    </div>
+    ${(() => {
+      // Берём email из ТЕКУЩЕГО поля (не из профиля) — чтобы видеть актуальное даже до сохранения
+      const emailField = val('c_email');
+      const licEmail = (emailField && emailField !== 'example.ru') ? emailField : '';
+      // licenseId — обязательно генерим если ещё нет
+      if (profile && !profile.licenseId) {
+        profile.licenseId = generateLicenseId();
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
+      }
+      const licId = profile && profile.licenseId ? profile.licenseId : '';
+      const parts = [];
+      if (licEmail) parts.push('Лицензия: ' + esc(licEmail));
+      else parts.push('Лицензия');
+      if (licId) parts.push('ID <span class="lic-id">' + esc(licId) + '</span>');
+      parts.push('smeta-pro.pages.dev');
+      return '<div class="doc-license">' + parts.join(' · ') + '</div>';
+    })()}`;
 }
 function renderDocAndTotals() { renderDoc(); renderTotals(); }
-function render() { renderNicheBar(); renderPresets(); renderSections(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
+function render() { renderNicheBar(); renderPresets(); renderSections(); initSortableRows(); renderLogoPreview(); renderThemePicker(); renderDocAndTotals(); }
 
 // Печать PDF с предварительным запоминанием цен
 function printPDF() {
   learnFromCurrentDoc();
   window.print();
 }
+
+// ===== ОТПРАВКА ПО EMAIL =====
+function sendByEmail() {
+  const c = calc();
+  const subject = `${val('d_type') || 'Смета'} ${val('cl_number') || ''}`.trim();
+  const lines = [];
+  lines.push(`Здравствуйте${val('cl_name') ? ', ' + val('cl_name') : ''}!`);
+  lines.push('');
+  lines.push(`Направляю ${(val('d_type') || 'смету').toLowerCase()} ${val('cl_number') || ''}`);
+  if (val('cl_object')) lines.push(`Объект: ${val('cl_object')}`);
+  lines.push(`Дата: ${val('cl_date')}`);
+  if (val('cl_revision')) lines.push(`Редакция: ${val('cl_revision')}`);
+  lines.push('');
+  lines.push('Состав работ:');
+  state.sections.forEach(s => {
+    const items = s.items.filter(it => it.name);
+    if (!items.length) return;
+    const ssum = items.reduce((a, it) => a + rowSum(it), 0);
+    lines.push(`• ${s.title} — ${fmt(ssum)}`);
+  });
+  lines.push('');
+  lines.push(`ИТОГО: ${fmt(c.total)}`);
+  if (num('cl_prepay') > 0) lines.push(`Предоплата ${num('cl_prepay')}%: ${fmt(c.total * num('cl_prepay') / 100)}`);
+  lines.push(`Срок действия предложения: ${val('cl_valid') || 14} дней`);
+  lines.push('');
+  lines.push(`С уважением,`);
+  lines.push(val('c_name') || '');
+  if (val('c_phone')) lines.push(val('c_phone'));
+  if (val('c_email')) lines.push(val('c_email'));
+  const body = encodeURIComponent(lines.join('\n'));
+  const sub = encodeURIComponent(subject);
+  // mailto: с пустым "to" — пользователь сам впишет получателя
+  window.location.href = `mailto:?subject=${sub}&body=${body}`;
+}
+
+// ===== РЕДАКЦИЯ ДОКУМЕНТА =====
+function incrementRevision() {
+  const cur = parseInt(val('cl_revision'), 10) || 1;
+  setVal('cl_revision', String(cur + 1));
+  markDraftDirty();
+  renderDocAndTotals();
+}
+
+// ===== UNDO (Ctrl+Z) =====
+const _undoStack = [];
+const _redoStack = [];
+const UNDO_LIMIT = 30;
+let _undoTimer = null;
+function snapshotForUndo() {
+  return JSON.stringify({
+    sections: state.sections,
+    vatOn: state.vatOn,
+    docCounter: state.docCounter,
+    cl: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
+    s: { discount: val('s_discount'), contingency: val('s_contingency'), vat: val('s_vat') },
+    terms: val('terms'),
+    dType: val('d_type'),
+  });
+}
+function pushUndoSnapshot() {
+  // debounce: за 700мс набора подряд — только один снапшот
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(() => {
+    const snap = snapshotForUndo();
+    if (_undoStack[_undoStack.length - 1] === snap) return;
+    _undoStack.push(snap);
+    if (_undoStack.length > UNDO_LIMIT) _undoStack.shift();
+    _redoStack.length = 0; // новое действие сбрасывает redo
+  }, 700);
+}
+function applyUndoSnapshot(raw) {
+  try {
+    const d = JSON.parse(raw);
+    state.sections = d.sections || [];
+    state.vatOn = !!d.vatOn;
+    document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn);
+    document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none';
+    document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none';
+    state.docCounter = d.docCounter || 0;
+    if (d.cl) { setVal('cl_name', d.cl.name); setVal('cl_object', d.cl.object); setVal('cl_number', d.cl.number); setVal('cl_date', d.cl.date); setVal('cl_valid', d.cl.valid); setVal('cl_prepay', d.cl.prepay); setVal('cl_revision', d.cl.revision); }
+    if (d.s) { setVal('s_discount', d.s.discount); setVal('s_contingency', d.s.contingency); setVal('s_vat', d.s.vat); }
+    if (d.terms !== undefined) setVal('terms', d.terms);
+    if (d.dType) setVal('d_type', d.dType);
+    render();
+  } catch (e) { console.warn('Undo не применился:', e); }
+}
+function doUndo() {
+  if (_undoStack.length < 2) return; // нужен хотя бы один прошлый + текущий
+  const current = _undoStack.pop();
+  _redoStack.push(current);
+  applyUndoSnapshot(_undoStack[_undoStack.length - 1]);
+}
+function doRedo() {
+  if (!_redoStack.length) return;
+  const snap = _redoStack.pop();
+  _undoStack.push(snap);
+  applyUndoSnapshot(snap);
+}
+// Хоткеи
+document.addEventListener('keydown', (e) => {
+  const isMac = navigator.platform.toLowerCase().includes('mac');
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+  if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+  else if (mod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); doRedo(); }
+});
 
 // ===== EXPORT XLSX =====
 function exportXLSX() {
@@ -1765,13 +2012,24 @@ function exportXLSX() {
     aoa.push([s.title || 'Раздел']);
     merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
     // Шапка таблицы
-    aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Сумма']);
+    // Проверяем есть ли в разделе скидки — если да, добавляем колонку
+    const sectionHasDiscount = items.some(it => (parseFloat(it.discount) || 0) > 0);
+    if (sectionHasDiscount) {
+      aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Скидка %', 'Сумма']);
+    } else {
+      aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Сумма']);
+    }
     // Строки
     let sectionSum = 0;
     items.forEach((it, i) => {
-      const sum = it.qty * it.price;
+      const sum = rowSum(it);
       sectionSum += sum;
-      aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, sum]);
+      const disc = parseFloat(it.discount) || 0;
+      if (sectionHasDiscount) {
+        aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, disc > 0 ? disc : '', sum]);
+      } else {
+        aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, sum]);
+      }
     });
     // Итог раздела — подпись в E, сумма в F (без merge, чтобы подпись была видна)
     aoa.push(['', '', '', '', 'Итого по разделу:', sectionSum]);
@@ -1837,11 +2095,13 @@ function exportXLSX() {
 // ===== EXPORT / IMPORT =====
 function exportJSON() {
   learnFromCurrentDoc();
+  addToRecent();   // ← сохраняем в недавние
+  clearDraft();    // ← после явного сохранения draft не нужен
   const data = {
     niche: currentNiche,
     company: { name: val('c_name'), slogan: val('c_slogan'), phone: val('c_phone'), email: val('c_email'), inn: val('c_inn') },
     docType: val('d_type'),
-    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay') },
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
     settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
     terms: val('terms'), sections: state.sections,
     logo: state.logo || null,
@@ -1864,7 +2124,7 @@ function importJSON(e) {
       if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
       if (d.company) { setVal('c_name', d.company.name); setVal('c_slogan', d.company.slogan); setVal('c_phone', d.company.phone); setVal('c_email', d.company.email); setVal('c_inn', d.company.inn); }
       if (d.docType) setVal('d_type', d.docType);
-      if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
+      if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); setVal('cl_revision', d.client.revision || ''); }
       if (d.settings) { setVal('s_discount', d.settings.discount); setVal('s_contingency', d.settings.contingency); setVal('s_vat', d.settings.vat); state.vatOn = !!d.settings.vatOn; document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn); document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none'; document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none'; }
       if (d.terms) setVal('terms', d.terms);
       if (d.sections) state.sections = d.sections;
@@ -1876,6 +2136,7 @@ function importJSON(e) {
       const incoming = (typeof d.docCounter === 'number' ? d.docCounter : parseCounterFromNumber(d.client && d.client.number));
       state.docCounter = Math.max(state.docCounter || 0, incoming || 0);
       if (d.theme) applyTheme(d.theme);
+      clearDraft(); // загрузили чужой документ — наш черновик больше не актуален
       render();
     } catch (err) { alert('Не удалось загрузить файл: ' + err.message); }
   };
@@ -1918,7 +2179,16 @@ let profile = {
   theme: 'orange',
   niche: 'remont',
   docCounter: 0,
+  licenseId: null, // генерится один раз при первом сохранении, не меняется
 };
+
+// Генерируем уникальный ID лицензии (формат SP-XXXXXX, без похожих символов)
+function generateLicenseId() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // без I, O, 0, 1
+  let id = 'SP-';
+  for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
 
 function loadProfile() {
   try {
@@ -1928,12 +2198,19 @@ function loadProfile() {
     if (p && typeof p === 'object') {
       profile = Object.assign(profile, p);
       profile.company = Object.assign({ name: '', slogan: '', phone: '', email: '', inn: '' }, p.company || {});
+      // Если у существующего профиля ещё нет licenseId (старый профиль до фичи) — генерим
+      if (!profile.licenseId) {
+        profile.licenseId = generateLicenseId();
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {}
+      }
       return true;
     }
   } catch (e) { console.warn('Профиль не загрузился:', e); }
   return false;
 }
 function saveProfile() {
+  // Генерим licenseId один раз при первом сохранении
+  if (!profile.licenseId) profile.licenseId = generateLicenseId();
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   } catch (e) {
@@ -1969,6 +2246,8 @@ function captureProfileFromFields() {
   profile.logo = state.logo || null;
   profile.theme = (typeof currentTheme !== 'undefined' ? currentTheme : 'orange');
   profile.docCounter = Math.max(profile.docCounter || 0, state.docCounter || 0);
+  // АВТО-CONFIGURED: если пользователь ввёл хоть какое-то осмысленное поле (название, слоган, ИНН или лого) —
+  // считаем профиль настроенным, чтобы визард больше не показывался
   if (!profile.configured) {
     const hasMeaningful = (profile.company.name && profile.company.name.trim())
       || (profile.company.slogan && profile.company.slogan.trim())
@@ -2033,6 +2312,196 @@ function closeProfileMenu() {
 }
 document.addEventListener('click', (e) => {
   const m = document.getElementById('profileMenu');
+  if (m && !m.contains(e.target)) m.classList.remove('open');
+});
+
+// ===== АВТОСОХРАНЕНИЕ ЧЕРНОВИКА + НЕДАВНИЕ СМЕТЫ =====
+const DRAFT_KEY = PROFILE_KEY.replace('-profile-', '-draft-');
+const RECENT_KEY = PROFILE_KEY.replace('-profile-', '-recent-');
+const MAX_RECENT = 10;
+let draftDirty = false;
+let pendingDraftToOffer = null; // если есть — показываем баннер восстановления
+
+// Собрать снапшот текущей сметы (без company/logo — они в профиле)
+function collectDocSnapshot() {
+  return {
+    niche: currentNiche,
+    docType: val('d_type'),
+    client: { name: val('cl_name'), object: val('cl_object'), number: val('cl_number'), date: val('cl_date'), valid: val('cl_valid'), prepay: val('cl_prepay'), revision: val('cl_revision') },
+    settings: { discount: val('s_discount'), contingency: val('s_contingency'), vatOn: state.vatOn, vat: val('s_vat') },
+    terms: val('terms'),
+    sections: state.sections,
+    docCounter: state.docCounter || 0,
+    savedAt: Date.now(),
+  };
+}
+
+// Применить снапшот в поля приложения
+function applyDocSnapshot(d) {
+  if (d.niche && NICHES[d.niche]) { currentNiche = d.niche; document.getElementById('lbl_object').textContent = NICHES[d.niche].objectLabel; }
+  if (d.docType) setVal('d_type', d.docType);
+  if (d.client) { setVal('cl_name', d.client.name); setVal('cl_object', d.client.object); setVal('cl_number', d.client.number); setVal('cl_date', d.client.date); setVal('cl_valid', d.client.valid); setVal('cl_prepay', d.client.prepay); }
+  if (d.settings) { setVal('s_discount', d.settings.discount); setVal('s_contingency', d.settings.contingency); setVal('s_vat', d.settings.vat); state.vatOn = !!d.settings.vatOn; document.getElementById('s_vat_sw').classList.toggle('on', state.vatOn); document.getElementById('s_vat').style.display = state.vatOn ? '' : 'none'; document.getElementById('s_vat_pct').style.display = state.vatOn ? '' : 'none'; }
+  if (d.terms) setVal('terms', d.terms);
+  if (Array.isArray(d.sections)) state.sections = d.sections;
+  if (typeof d.docCounter === 'number') state.docCounter = Math.max(state.docCounter || 0, d.docCounter);
+}
+
+// Содержит ли снапшот реальную работу пользователя (не пустую болванку из ниши)?
+function snapshotHasWork(d) {
+  if (!d || !Array.isArray(d.sections)) return false;
+  // Считаем что у пользователя реально что-то есть, если в сметах есть хотя бы одна работа с qty*price > 0
+  for (const s of d.sections) {
+    for (const it of (s.items || [])) {
+      if (it.name && it.qty > 0 && it.price > 0) return true;
+    }
+  }
+  return false;
+}
+
+function saveDraft() {
+  if (!draftDirty) return;
+  try {
+    const snap = collectDocSnapshot();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(snap));
+    draftDirty = false;
+  } catch (e) { /* QuotaExceeded — игнорим, основная работа не страдает */ }
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+// Помечаем что данные изменились — следующий autosave подхватит + снапшот для undo
+function markDraftDirty() { draftDirty = true; if (typeof pushUndoSnapshot === 'function') pushUndoSnapshot(); }
+
+// Запускаем периодический autosave
+setInterval(saveDraft, 5000);
+// Перед закрытием вкладки — сохраняем сразу
+window.addEventListener('beforeunload', () => { if (draftDirty) saveDraft(); });
+
+// Показать баннер если есть несохранённый черновик
+function maybeShowDraftBanner() {
+  const draft = loadDraft();
+  if (!draft || !snapshotHasWork(draft)) { clearDraft(); return; }
+  pendingDraftToOffer = draft;
+  const banner = document.getElementById('draftBanner');
+  const info = document.getElementById('draftBannerInfo');
+  if (!banner || !info) return;
+  const ago = humanTimeAgo(draft.savedAt);
+  const sectionsCount = (draft.sections || []).length;
+  let workCount = 0;
+  (draft.sections || []).forEach(s => { (s.items || []).forEach(it => { if (it.name) workCount++; }); });
+  info.textContent = `${draft.client?.number || 'Без номера'} · ${sectionsCount} разделов · ${workCount} позиций · сохранено ${ago}`;
+  banner.classList.remove('hidden');
+}
+function restoreDraft() {
+  if (!pendingDraftToOffer) { document.getElementById('draftBanner').classList.add('hidden'); return; }
+  applyDocSnapshot(pendingDraftToOffer);
+  pendingDraftToOffer = null;
+  document.getElementById('draftBanner').classList.add('hidden');
+  render();
+}
+function dismissDraft() {
+  pendingDraftToOffer = null;
+  clearDraft();
+  document.getElementById('draftBanner').classList.add('hidden');
+}
+function humanTimeAgo(ts) {
+  const sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 60) return `${sec} сек назад`;
+  if (sec < 3600) return `${Math.floor(sec / 60)} мин назад`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)} ч назад`;
+  return `${Math.floor(sec / 86400)} дн назад`;
+}
+
+// ===== НЕДАВНИЕ СМЕТЫ =====
+function loadRecent() {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function saveRecent(list) {
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch (e) {}
+}
+// Добавить текущую смету в список недавних (вызывается при экспорте JSON и при сознательном переключении документа)
+function addToRecent() {
+  const snap = collectDocSnapshot();
+  if (!snapshotHasWork(snap)) return;
+  const c = calc();
+  const workCount = snap.sections.reduce((a, s) => a + (s.items || []).filter(it => it.name).length, 0);
+  const entry = {
+    id: 'rec-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    number: snap.client.number || 'Без номера',
+    clientName: snap.client.name || '',
+    date: snap.client.date || '',
+    total: c.total,
+    workCount,
+    sectionsCount: snap.sections.length,
+    savedAt: Date.now(),
+    snapshot: snap,
+  };
+  let list = loadRecent();
+  // Если есть запись с тем же номером — заменяем
+  list = list.filter(r => r.number !== entry.number);
+  list.unshift(entry);
+  if (list.length > MAX_RECENT) list = list.slice(0, MAX_RECENT);
+  saveRecent(list);
+  renderRecentMenu();
+}
+function renderRecentMenu() {
+  const ml = document.getElementById('recentMenuList');
+  if (!ml) return;
+  const list = loadRecent();
+  if (!list.length) {
+    ml.innerHTML = '<div class="recent-item empty">Пока нет недавних смет.<br><span style="font-size:11px">Появятся после первого «💾 Сохранить»</span></div>';
+    return;
+  }
+  ml.innerHTML = list.map(r => `
+    <button class="recent-item" onclick="loadRecentItem('${r.id}')">
+      <div class="r-top">
+        <span class="r-num">${esc(r.number)}</span>
+        <span class="r-total">${fmt(r.total)}</span>
+      </div>
+      <div class="r-meta">${esc(r.clientName)} · ${esc(r.date)} · ${r.workCount} позиций · ${humanTimeAgo(r.savedAt)}</div>
+    </button>
+  `).join('') + `<div class="recent-divider"></div><button class="recent-item" style="text-align:center;color:var(--ink-3);font-size:12px" onclick="clearAllRecent()">🗑 Очистить список</button>`;
+}
+function loadRecentItem(id) {
+  const list = loadRecent();
+  const item = list.find(r => r.id === id);
+  if (!item) return;
+  if (snapshotHasWork(collectDocSnapshot())) {
+    if (!confirm('Загрузить смету «' + item.number + '»? Текущая работа сохранится в недавних (если в ней что-то есть).')) return;
+    addToRecent(); // сохраняем текущую перед заменой
+  }
+  applyDocSnapshot(item.snapshot);
+  closeRecentMenu();
+  clearDraft(); // загруженная смета не считается черновиком
+  render();
+}
+function clearAllRecent() {
+  if (!confirm('Удалить весь список недавних смет?')) return;
+  saveRecent([]);
+  renderRecentMenu();
+  closeRecentMenu();
+}
+function toggleRecentMenu() {
+  renderRecentMenu();
+  document.getElementById('recentMenu').classList.toggle('open');
+}
+function closeRecentMenu() {
+  document.getElementById('recentMenu').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const m = document.getElementById('recentMenu');
   if (m && !m.contains(e.target)) m.classList.remove('open');
 });
 
@@ -2132,14 +2601,127 @@ function renderLearnedBar() {
 
 // Добавить работу из памяти в последний раздел (или создать новый раздел "Доп. работы")
 function addLearnedItem(name, price) {
+  addWorkToLastSection(name, 'шт', price);
+}
+
+// Универсальное добавление работы (используется и для памяти, и для поиска)
+function addWorkToLastSection(name, unit, price) {
   let targetSi = state.sections.length - 1;
   if (targetSi < 0) {
     state.sections.push({ id: id(), title: "Доп. работы", items: [] });
     targetSi = 0;
   }
-  state.sections[targetSi].items.push({ id: id(), name, unit: 'шт', qty: 1, price });
+  state.sections[targetSi].items.push({ id: id(), name, unit: unit || 'шт', qty: 1, price: price || 0 });
+  markDraftDirty();
   render();
 }
+
+// ===== ПОИСК ПО РАБОТАМ =====
+function buildSearchIndex() {
+  const idx = [];
+  // Из всех ниш
+  Object.entries(NICHES).forEach(([nicheKey, niche]) => {
+    Object.entries(niche.presets || {}).forEach(([cat, items]) => {
+      items.forEach(it => {
+        idx.push({ name: it.name, unit: it.unit, price: it.price, source: niche.emoji + ' ' + niche.title + ' · ' + cat, isLearned: false });
+      });
+    });
+  });
+  // Из выученных цен
+  Object.entries(learnedPrices || {}).forEach(([key, v]) => {
+    idx.push({ name: v.original || key, unit: 'шт', price: v.price, source: '🧠 моя память · использовано ' + v.count + ' раз', isLearned: true });
+  });
+  return idx;
+}
+
+function searchWorks(query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q || q.length < 2) return [];
+  const idx = buildSearchIndex();
+  // Все совпадения по подстроке
+  const matches = idx.filter(it => it.name.toLowerCase().includes(q));
+  // Сортировка: сначала выученные, потом точные начала, потом всё остальное
+  matches.sort((a, b) => {
+    if (a.isLearned !== b.isLearned) return a.isLearned ? -1 : 1;
+    const aStarts = a.name.toLowerCase().startsWith(q);
+    const bStarts = b.name.toLowerCase().startsWith(q);
+    if (aStarts !== bStarts) return aStarts ? -1 : 1;
+    return a.name.length - b.name.length;
+  });
+  // Дедупликация по нормализованному имени
+  const seen = new Set();
+  const out = [];
+  for (const it of matches) {
+    const key = normalizeName(it.name);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+    if (out.length >= 20) break;
+  }
+  return out;
+}
+
+let _searchIdToData = {};
+function onSearchInput(query) {
+  const box = document.getElementById('searchBox');
+  const results = document.getElementById('searchResults');
+  const clearBtn = document.getElementById('searchClear');
+  if (!box || !results) return;
+  if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+  if (!query || query.length < 2) {
+    box.classList.remove('has-results');
+    return;
+  }
+  const items = searchWorks(query);
+  _searchIdToData = {};
+  if (!items.length) {
+    results.innerHTML = '<div class="search-empty">Ничего не нашлось. Попробуй другое слово или добавь работу вручную через «＋ Строка»</div>';
+    box.classList.add('has-results');
+    return;
+  }
+  results.innerHTML = items.map((it, i) => {
+    const sid = 's' + i;
+    _searchIdToData[sid] = it;
+    return `<div class="search-result ${it.isLearned ? 'learned' : ''}" onclick="addFromSearch('${sid}')">
+      <div class="sr-info">
+        <div class="sr-name">${esc(it.name)}</div>
+        <div class="sr-source">${esc(it.source)}</div>
+      </div>
+      <div class="sr-price">${fmt(it.price)}<span class="sr-unit">/${esc(it.unit)}</span></div>
+    </div>`;
+  }).join('');
+  box.classList.add('has-results');
+}
+function addFromSearch(sid) {
+  const it = _searchIdToData[sid];
+  if (!it) return;
+  addWorkToLastSection(it.name, it.unit, it.price);
+  clearSearch();
+}
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  const box = document.getElementById('searchBox');
+  const clearBtn = document.getElementById('searchClear');
+  if (input) input.value = '';
+  if (box) box.classList.remove('has-results');
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+// Закрытие при клике вне поля
+document.addEventListener('click', (e) => {
+  const box = document.getElementById('searchBox');
+  if (box && !box.contains(e.target)) box.classList.remove('has-results');
+});
+// Закрытие по Esc
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const box = document.getElementById('searchBox');
+    if (box && box.classList.contains('has-results')) {
+      box.classList.remove('has-results');
+      const input = document.getElementById('searchInput');
+      if (input) input.blur();
+    }
+  }
+});
 
 // ===== ШАБЛОНЫ РАЗДЕЛОВ =====
 function saveSectionAsTemplate(si) {
@@ -2355,9 +2937,19 @@ function finishWizard(skipped) {
   }
   // Привязываем автосохранение профиля к полям
   watchProfileFields();
+  // Привязываем markDraftDirty к полям клиента, настроек и условий
+  ['cl_name','cl_object','cl_number','cl_date','cl_valid','cl_prepay','cl_revision','s_discount','s_contingency','s_vat','terms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', markDraftDirty);
+  });
+  const dType = document.getElementById('d_type');
+  if (dType) dType.addEventListener('change', markDraftDirty);
   renderLearnedBar();
   renderTemplatesBar();
+  renderRecentMenu();
   renderDocAndTotals();
+  // Проверяем есть ли черновик от прошлого раза
+  maybeShowDraftBanner();
   // Если не настраивали — запускаем визард
   if (!loaded || !profile.configured) startWizard(false);
 })();
