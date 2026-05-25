@@ -1550,9 +1550,12 @@ function pluralItems(n) {
 }
 function renderSections() {
   document.getElementById('sections').innerHTML = state.sections.map((s, si) => {
-    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    const sum = s.items.reduce((a, it) => a + rowSum(it), 0);
     const cnt = s.items.length;
-    const rows = s.items.map((it, ii) => `
+    const rows = s.items.map((it, ii) => {
+      const disc = parseFloat(it.discount) || 0;
+      const discDisplay = disc > 0 ? it.discount : '';
+      return `
       <tr draggable="true"
           ondragstart="dragStart(event,${si},${ii})"
           ondragend="dragEnd(event)"
@@ -1561,12 +1564,15 @@ function renderSections() {
           ondrop="dragDrop(event,${si},${ii})">
         <td class="row-handle" title="Перетащите чтобы поменять порядок">⋮⋮</td>
         <td><input value="${esc(it.name)}" oninput="upd(${si},${ii},'name',this.value)" placeholder="Наименование"></td>
-        <td style="width:70px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
-        <td style="width:90px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
-        <td style="width:110px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
-        <td class="cell-sum">${fmt(it.qty * it.price)}</td>
-        <td style="width:34px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
-      </tr>`).join('');
+        <td style="width:60px"><input value="${esc(it.unit)}" oninput="upd(${si},${ii},'unit',this.value)" placeholder="ед."></td>
+        <td style="width:80px"><input class="num" value="${it.qty}" oninput="upd(${si},${ii},'qty',this.value)" inputmode="decimal"></td>
+        <td style="width:100px;white-space:nowrap"><input class="num" value="${it.price}" oninput="upd(${si},${ii},'price',this.value)" inputmode="decimal" style="width:calc(100% - 18px);display:inline-block">${getLearnedPrice(it.name) && Math.round(getLearnedPrice(it.name)) === Math.round(it.price) ? '<span class="learned-indicator" title="Цена из памяти — была сохранена ранее">🧠</span>' : ''}</td>
+        <td style="width:64px"><input class="num" value="${discDisplay}" placeholder="—" oninput="upd(${si},${ii},'discount',this.value)" inputmode="decimal" title="Скидка на эту строку, %" style="${disc > 0 ? 'color:#F87171;font-weight:600' : ''}"></td>
+        <td class="cell-sum">${fmt(rowSum(it))}</td>
+        <td style="width:30px"><button class="del-row" onclick="dupRow(${si},${ii})" title="Дублировать строку" style="color:var(--ink-3)">⎘</button></td>
+        <td style="width:30px"><button class="del-row" onclick="delRow(${si},${ii})">×</button></td>
+      </tr>`;
+    }).join('');
     return `
       <div class="section-block">
         <div class="section-head">
@@ -1575,7 +1581,7 @@ function renderSections() {
           <span class="section-sum">${fmt(sum)}</span>
         </div>
         <table class="items">
-          <thead><tr><th style="width:22px"></th><th>Наименование</th><th>Ед.</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r">Сумма</th><th></th></tr></thead>
+          <thead><tr><th style="width:22px"></th><th>Наименование</th><th>Ед.</th><th class="r">Кол-во</th><th class="r">Цена</th><th class="r" title="Скидка на строку, %">Скид.%</th><th class="r">Сумма</th><th></th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="section-foot">
@@ -1587,8 +1593,17 @@ function renderSections() {
       </div>`;
   }).join('');
 }
+// Дублировать строку (вставить копию сразу под текущей)
+function dupRow(si, ii) {
+  const orig = state.sections[si].items[ii];
+  const copy = { id: id(), name: orig.name, unit: orig.unit, qty: orig.qty, price: orig.price, discount: orig.discount };
+  state.sections[si].items.splice(ii + 1, 0, copy);
+  markDraftDirty();
+  render();
+}
 function upd(si, ii, key, v) {
-  if (key === 'qty' || key === 'price') v = parseFloat(v.toString().replace(',', '.')) || 0;
+  if (key === 'qty' || key === 'price' || key === 'discount') v = parseFloat(v.toString().replace(',', '.')) || 0;
+  if (key === 'discount') v = Math.max(0, Math.min(100, v)); // 0-100%
   state.sections[si].items[ii][key] = v;
   markDraftDirty();
   // ПАМЯТЬ ЦЕН:
@@ -1613,7 +1628,12 @@ function upd(si, ii, key, v) {
     }
   }
   renderDocAndTotals();
-  if (key === 'qty' || key === 'price' || nameChanged) renderSections();
+  if (key === 'qty' || key === 'price' || key === 'discount' || nameChanged) renderSections();
+}
+// Сумма одной строки с учётом скидки строки (0-100%)
+function rowSum(it) {
+  const disc = parseFloat(it.discount) || 0;
+  return it.qty * it.price * (1 - disc / 100);
 }
 function updSection(si, v) { state.sections[si].title = v; markDraftDirty(); renderDocAndTotals(); }
 function addRow(si) { state.sections[si].items.push({ id: id(), name: "", unit: "шт", qty: 1, price: 0 }); markDraftDirty(); render(); }
@@ -1692,7 +1712,8 @@ function toggleVat() {
 
 // ===== РАСЧЁТ =====
 function calc() {
-  const worksSum = state.sections.reduce((a, s) => a + s.items.reduce((b, it) => b + it.qty * it.price, 0), 0);
+  // worksSum считается с учётом скидок отдельных строк (item.discount)
+  const worksSum = state.sections.reduce((a, s) => a + s.items.reduce((b, it) => b + rowSum(it), 0), 0);
   const discountPct = num('s_discount');
   const contingencyPct = num('s_contingency');
   const discount = worksSum * discountPct / 100;
@@ -1718,14 +1739,20 @@ function renderDoc() {
   const c = calc();
   const inn = val('c_inn');
   const prepay = num('cl_prepay');
+  // Показывать колонку "Скидка" только если в смете есть хоть одна строка со скидкой > 0
+  const hasAnyDiscount = state.sections.some(s => s.items.some(it => (parseFloat(it.discount) || 0) > 0));
   const sectionsHtml = state.sections.map(s => {
-    const sum = s.items.reduce((a, it) => a + it.qty * it.price, 0);
+    const sum = s.items.reduce((a, it) => a + rowSum(it), 0);
     if (!s.items.length) return '';
-    const rows = s.items.filter(it => it.name).map((it, i) => `
-      <tr><td class="c">${i + 1}</td><td>${esc(it.name)}</td><td class="c">${esc(it.unit)}</td>
-      <td class="r">${it.qty}</td><td class="r">${fmt(it.price)}</td><td class="r">${fmt(it.qty * it.price)}</td></tr>`).join('');
+    const rows = s.items.filter(it => it.name).map((it, i) => {
+      const disc = parseFloat(it.discount) || 0;
+      const discCell = hasAnyDiscount ? `<td class="r">${disc > 0 ? '−' + disc + '%' : ''}</td>` : '';
+      return `<tr><td class="c">${i + 1}</td><td>${esc(it.name)}</td><td class="c">${esc(it.unit)}</td>
+      <td class="r">${it.qty}</td><td class="r">${fmt(it.price)}</td>${discCell}<td class="r">${fmt(rowSum(it))}</td></tr>`;
+    }).join('');
+    const discHeader = hasAnyDiscount ? '<th class="r" style="width:55px">Скидка</th>' : '';
     return `<div class="doc-section"><div class="doc-section-title">${esc(s.title)}</div>
-      <table class="doc-table"><thead><tr><th class="c" style="width:32px">№</th><th>Наименование</th><th class="c" style="width:50px">Ед.</th><th class="r" style="width:60px">Кол-во</th><th class="r" style="width:90px">Цена</th><th class="r" style="width:100px">Сумма</th></tr></thead>
+      <table class="doc-table"><thead><tr><th class="c" style="width:32px">№</th><th>Наименование</th><th class="c" style="width:50px">Ед.</th><th class="r" style="width:60px">Кол-во</th><th class="r" style="width:90px">Цена</th>${discHeader}<th class="r" style="width:100px">Сумма</th></tr></thead>
       <tbody>${rows}</tbody></table><div class="doc-section-sum">Итого по разделу: ${fmt(sum)}</div></div>`;
   }).join('');
   let totalsHtml = `<div class="doc-total-line"><span>Стоимость</span><span class="v">${fmt(c.worksSum)}</span></div>`;
@@ -1820,13 +1847,24 @@ function exportXLSX() {
     aoa.push([s.title || 'Раздел']);
     merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 5 } });
     // Шапка таблицы
-    aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Сумма']);
+    // Проверяем есть ли в разделе скидки — если да, добавляем колонку
+    const sectionHasDiscount = items.some(it => (parseFloat(it.discount) || 0) > 0);
+    if (sectionHasDiscount) {
+      aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Скидка %', 'Сумма']);
+    } else {
+      aoa.push(['№', 'Наименование', 'Ед.', 'Кол-во', 'Цена', 'Сумма']);
+    }
     // Строки
     let sectionSum = 0;
     items.forEach((it, i) => {
-      const sum = it.qty * it.price;
+      const sum = rowSum(it);
       sectionSum += sum;
-      aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, sum]);
+      const disc = parseFloat(it.discount) || 0;
+      if (sectionHasDiscount) {
+        aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, disc > 0 ? disc : '', sum]);
+      } else {
+        aoa.push([i + 1, it.name, it.unit || '', it.qty, it.price, sum]);
+      }
     });
     // Итог раздела — подпись в E, сумма в F (без merge, чтобы подпись была видна)
     aoa.push(['', '', '', '', 'Итого по разделу:', sectionSum]);
