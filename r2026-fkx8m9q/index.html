@@ -397,64 +397,117 @@ td.cell-price-wrap { position: relative; }
   .app { padding: 0 12px 60px; }
   .panel { padding: 16px 14px; border-radius: 14px; }
 
-  /* Таблица работ на мобиле — компактная карточка с переносом полей через flex-wrap.
-     Без подписей "РАБОТА/ЦЕНА" на каждой строке (шум). Подсказки — через placeholder. */
+  /* Таблица работ на мобиле — карточка с ПОНЯТНЫМИ ПОДПИСЯМИ слева от каждого поля.
+     Структура карточки:
+       ⋮⋮  [Название работы..........]  [×]
+            Кол-во:  [95]      Ед.: [м²]
+            Цена:    [120]   Скидка: [—]
+            Сумма:                 11 400 ₽
+   */
   .section-block { overflow: visible; }
   table.items { display: block; width: 100%; }
   table.items thead { display: none; }
   table.items tbody { display: block; width: 100%; }
   table.items tr {
-    display: flex; flex-wrap: wrap; align-items: center;
-    gap: 6px;
-    padding: 8px 10px;
+    display: flex; flex-wrap: wrap;
+    gap: 8px 6px;
+    padding: 12px;
     background: var(--panel-2);
     border: 1px solid var(--line-solid);
-    border-radius: 10px;
-    margin-bottom: 6px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    align-items: center;
   }
   table.items td {
     padding: 0 !important; border: none !important;
     text-align: left !important; white-space: normal !important;
     flex-shrink: 0; min-width: 0;
+    display: flex; align-items: center; gap: 6px;
+    box-sizing: border-box;
   }
-  table.items td::before { display: none !important; }
+  /* Подпись поля СЛЕВА от инпута (а не сверху) */
+  table.items td[data-label]::before {
+    content: attr(data-label) ':';
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
   table.items td input {
-    width: 100%; font-size: 16px;
-    padding: 8px 8px; box-sizing: border-box;
-    text-align: center;
+    flex: 1 1 auto; min-width: 0;
+    font-size: 16px; padding: 8px 10px;
+    box-sizing: border-box;
+    text-align: left;
+    width: 100%;
   }
-  /* === Ряд 1: ⋮⋮ [название работы..............] [×]  === */
+
+  /* === РЯД 1: ⋮⋮ [имя работы] [×] === */
   table.items td.row-handle {
     order: 1; flex: 0 0 18px;
-    align-self: center; text-align: center;
+    justify-content: center;
     opacity: 0.4; font-size: 18px;
   }
+  table.items td.row-handle::before { display: none; }
   table.items td[data-label="Работа"] {
     order: 2; flex: 1 1 calc(100% - 70px); min-width: 0;
   }
+  /* У названия работы подпись не нужна — она и так очевидна */
+  table.items td[data-label="Работа"]::before { display: none; }
   table.items td[data-label="Работа"] input {
-    text-align: left; font-weight: 600; padding: 10px 12px;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 10px 12px;
   }
-  table.items td.td-action:nth-of-type(9) { /* del */
-    order: 3; flex: 0 0 36px; align-self: center;
+  table.items td.td-action:nth-of-type(9) { /* кнопка удалить */
+    order: 3; flex: 0 0 36px;
+    justify-content: center;
   }
-  /* === Ряд 2: [кол-во][ед][цена][%][===сумма===]  (dup скрыт)  === */
-  table.items td[data-label="Кол-во"] { order: 4; flex: 1 1 54px; min-width: 52px; }
-  table.items td[data-label="Ед."]    { order: 5; flex: 1 1 44px; min-width: 42px; }
-  table.items td[data-label="Цена"]   { order: 6; flex: 1 1 64px; min-width: 58px; }
-  table.items td[data-label="Скидка %"] { order: 7; flex: 1 1 48px; min-width: 44px; }
+  table.items td.td-action::before { display: none !important; }
+
+  /* === РЯД 2: Кол-во | Ед. === */
+  table.items td[data-label="Кол-во"] {
+    order: 4; flex: 1 1 calc(50% - 3px); min-width: 0;
+  }
+  table.items td[data-label="Ед."] {
+    order: 5; flex: 1 1 calc(50% - 3px); min-width: 0;
+  }
+
+  /* === РЯД 3: Цена | Скидка === */
+  table.items td[data-label="Цена"] {
+    order: 6; flex: 1 1 calc(60% - 3px); min-width: 0;
+  }
+  table.items td[data-label="Скидка %"] {
+    order: 7; flex: 1 1 calc(40% - 3px); min-width: 0;
+  }
+  /* Переименовываем "Скидка %" в просто "Скидка" — короче */
+  table.items td[data-label="Скидка %"]::before { content: 'Скидка:'; }
+
+  /* === РЯД 4: Сумма (на всю ширину, выделена) === */
   table.items td.cell-sum {
-    order: 8; flex: 1 1 80px; min-width: 70px;
-    align-self: center; text-align: right;
-    font-weight: 700; color: var(--accent);
-    font-size: 15px; white-space: nowrap;
-    padding: 6px 4px !important;
+    order: 8; flex: 1 1 100%;
+    justify-content: space-between;
+    padding: 10px 12px !important;
+    margin-top: 2px;
+    background: var(--panel);
+    border-radius: 8px;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 17px;
   }
-  /* Дублирование строки убираем — мало кому нужно на мобиле, есть «Дублировать раздел» внизу */
+  table.items td.cell-sum::before {
+    content: 'Сумма:';
+    font-size: 12.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* Дублирование строки скрываем (есть «Дублировать раздел» внизу) */
   table.items td.td-action:nth-of-type(8) { display: none; }
+
   table.items td.td-action .del-row {
     width: 36px; height: 36px;
-    border-radius: 8px; font-size: 16px;
+    border-radius: 8px; font-size: 18px;
     border: 1px solid var(--line-solid); background: var(--panel);
     display: flex; align-items: center; justify-content: center;
   }
