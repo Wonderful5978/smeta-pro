@@ -2,7 +2,7 @@
 // Стратегия: cache-first. После первой загрузки приложение работает оффлайн.
 // При обновлении версии — меняй CACHE_NAME, тогда старый кэш почистится.
 
-const CACHE_NAME = 'smeta-pro-full-v20';
+const CACHE_NAME = 'smeta-pro-full-v21';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -39,13 +39,35 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  const url = new URL(req.url);
 
+  // HTML, manifest.json, sw.js — network-first (всегда тянем свежее, кэш — fallback при offline).
+  // Это критично, чтобы битый кэш не "застревал" у пользователя навсегда.
+  const isFresh = req.mode === 'navigate'
+    || (req.headers.get('accept') || '').includes('text/html')
+    || url.pathname.endsWith('.html')
+    || url.pathname.endsWith('/')
+    || url.pathname.endsWith('manifest.json')
+    || url.pathname.endsWith('sw.js');
+
+  if (isFresh) {
+    event.respondWith(
+      fetch(req).then((resp) => {
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return resp;
+      }).catch(() => caches.match(req)) // нет сети → fallback на кэш
+    );
+    return;
+  }
+
+  // Остальное (картинки, шрифты, CDN-библиотеки) — cache-first (быстро, экономно).
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((resp) => {
-        // Кэшируем удачные ответы (включая CDN: шрифты, SheetJS).
-        // Opaque ответы (no-cors с CDN) тоже сохраняем — на оффлайн лучше иметь, чем не иметь.
         if (resp && (resp.status === 200 || resp.type === 'opaque')) {
           const copy = resp.clone();
           caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
