@@ -472,6 +472,11 @@ td.cell-price-wrap { position: relative; }
   .wizard { padding: 20px 16px; }
   .wizard h2 { font-size: 22px; }
   .wizard .wizard-sub { font-size: 13px; margin-bottom: 18px; }
+  /* Заголовок раздела: на мобиле название на всю ширину, count+sum снизу */
+  .section-head { flex-wrap: wrap; gap: 6px 10px; padding: 12px 14px; }
+  .section-title-input { flex: 1 1 100%; min-width: 0; font-size: 16px; }
+  .section-count { font-size: 11px; }
+  .section-sum { font-size: 14px; margin-left: auto; }
   .profile-menu-list, .recent-menu-list { right: 0 !important; left: 0 !important; min-width: 0 !important; max-width: 100vw !important; }
   .search-input { padding: 12px 14px 12px 38px; }
   .document { padding: 16px 12px; box-shadow: none; }
@@ -486,6 +491,8 @@ td.cell-price-wrap { position: relative; }
   .section-foot .mini-btn { font-size: 12px; padding: 7px 10px; }
 }
 .topbar { will-change: transform; -webkit-transform: translateZ(0); transform: translateZ(0); }
+/* Плашка «Часто использую» — убираем */
+.learned-bar { display: none !important; }
 
 /* ===== DEMO WATERMARK ===== */
 .demo-bar { position: sticky; top: 0; z-index: 100; background: linear-gradient(90deg, #EA580C 0%, #F59E0B 100%); color: white; padding: 10px 20px; font-weight: 600; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }

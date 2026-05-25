@@ -587,7 +587,17 @@ td.cell-price-wrap { position: relative; }
   .wizard { padding: 20px 16px; }
   .wizard h2 { font-size: 22px; }
   .wizard .wizard-sub { font-size: 13px; margin-bottom: 18px; }
+
+  /* Заголовок раздела: на мобиле всегда переносим на отдельную строку,
+     а позиции/сумма уходят вниз — иначе длинные названия обрезаются (см. "Фундамент (плита 120 м²)"). */
+  .section-head { flex-wrap: wrap; gap: 6px 10px; padding: 12px 14px; }
+  .section-title-input { flex: 1 1 100%; min-width: 0; font-size: 16px; }
+  .section-count { font-size: 11px; }
+  .section-sum { font-size: 14px; margin-left: auto; }
 }
+
+/* Плашка «Часто использую» — убираем как просил пользователь */
+.learned-bar { display: none !important; }
 
 /* iOS sticky bug fix: на самих iOS-устройствах sticky иногда «отстаёт» от scroll.
    Принудительно говорим браузеру использовать composited layer */
