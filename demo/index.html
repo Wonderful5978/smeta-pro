@@ -18,9 +18,25 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+  let _xlsxPromise = null;
+  function loadXLSX() {
+    if (typeof XLSX !== 'undefined') return Promise.resolve();
+    if (_xlsxPromise) return _xlsxPromise;
+    _xlsxPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => { _xlsxPromise = null; reject(new Error('SheetJS не загрузился')); };
+      document.head.appendChild(s);
+    });
+    return _xlsxPromise;
+  }
+</script>
 <style>
 :root {
   --bg: #14110E;
@@ -2041,8 +2057,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===== EXPORT XLSX =====
-function exportXLSX() {
-  if (typeof XLSX === 'undefined') { alert('Библиотека Excel не загрузилась. Проверь интернет и обнови страницу.'); return; }
+async function exportXLSX() {
+  try {
+    await loadXLSX();
+  } catch (e) {
+    alert('Не удалось загрузить библиотеку Excel. Проверь интернет и попробуй снова.');
+    return;
+  }
+  if (typeof XLSX === 'undefined') { alert('Библиотека Excel не загрузилась.'); return; }
   learnFromCurrentDoc();
   const c = calc();
   const prepay = num('cl_prepay');
