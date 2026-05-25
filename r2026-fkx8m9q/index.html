@@ -275,6 +275,27 @@ table.doc-table td.c { text-align: center; font-family: 'JetBrains Mono', monosp
 .learned-indicator { color: #A855F7; font-size: 13px; cursor: help; }
 td.cell-price-wrap { position: relative; }
 
+/* ===== ПОИСК ПО РАБОТАМ ===== */
+.search-box { position: relative; margin-bottom: 14px; }
+.search-input { width: 100%; padding: 12px 16px 12px 40px; font-family: inherit; font-size: 14px; background: var(--panel-2); border: 1px solid var(--line-solid); border-radius: 12px; color: var(--ink); transition: border 140ms; }
+.search-input:focus { outline: none; border-color: var(--accent); }
+.search-input::placeholder { color: var(--ink-3); }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 16px; pointer-events: none; }
+.search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--ink-3); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; }
+.search-clear:hover { color: var(--ink); background: var(--panel); }
+.search-results { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--panel); border: 1px solid var(--line-solid); border-radius: 12px; max-height: 380px; overflow-y: auto; z-index: 50; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6); }
+.search-box.has-results .search-results { display: block; }
+.search-result { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #322a2030; }
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: var(--panel-2); }
+.search-result .sr-info { flex: 1; min-width: 0; }
+.search-result .sr-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.search-result .sr-source { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.search-result.learned .sr-source { color: #C4B5FD; }
+.search-result .sr-price { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent-2); white-space: nowrap; }
+.search-result .sr-unit { color: var(--ink-3); font-size: 11px; margin-left: 4px; }
+.search-empty { padding: 18px 14px; text-align: center; color: var(--ink-3); font-size: 13px; }
+
 /* LOGO */
 .logo-field { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--panel-2); border: 1px dashed var(--line-solid); border-radius: 12px; }
 .logo-preview { width: 72px; height: 72px; border-radius: 10px; background: #14110E; border: 1px solid var(--line-solid); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
@@ -431,6 +452,12 @@ td.cell-price-wrap { position: relative; }
 
   <div class="panel no-print">
     <div class="panel-head"><span class="num">3</span><h2>Работы и услуги</h2></div>
+    <div class="search-box" id="searchBox">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Найди работу по названию (из всех 15 ниш + твои выученные цены)…" oninput="onSearchInput(this.value)" onfocus="onSearchInput(this.value)">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">×</button>
+      <div class="search-results" id="searchResults"></div>
+    </div>
     <div class="learned-bar empty" id="learnedBar"></div>
     <div class="tmpl-bar empty" id="tmplBar"></div>
     <div class="presets-bar" id="presetBar"></div>
@@ -2371,14 +2398,127 @@ function renderLearnedBar() {
 
 // Добавить работу из памяти в последний раздел (или создать новый раздел "Доп. работы")
 function addLearnedItem(name, price) {
+  addWorkToLastSection(name, 'шт', price);
+}
+
+// Универсальное добавление работы (используется и для памяти, и для поиска)
+function addWorkToLastSection(name, unit, price) {
   let targetSi = state.sections.length - 1;
   if (targetSi < 0) {
     state.sections.push({ id: id(), title: "Доп. работы", items: [] });
     targetSi = 0;
   }
-  state.sections[targetSi].items.push({ id: id(), name, unit: 'шт', qty: 1, price });
+  state.sections[targetSi].items.push({ id: id(), name, unit: unit || 'шт', qty: 1, price: price || 0 });
+  markDraftDirty();
   render();
 }
+
+// ===== ПОИСК ПО РАБОТАМ =====
+function buildSearchIndex() {
+  const idx = [];
+  // Из всех ниш
+  Object.entries(NICHES).forEach(([nicheKey, niche]) => {
+    Object.entries(niche.presets || {}).forEach(([cat, items]) => {
+      items.forEach(it => {
+        idx.push({ name: it.name, unit: it.unit, price: it.price, source: niche.emoji + ' ' + niche.title + ' · ' + cat, isLearned: false });
+      });
+    });
+  });
+  // Из выученных цен
+  Object.entries(learnedPrices || {}).forEach(([key, v]) => {
+    idx.push({ name: v.original || key, unit: 'шт', price: v.price, source: '🧠 моя память · использовано ' + v.count + ' раз', isLearned: true });
+  });
+  return idx;
+}
+
+function searchWorks(query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q || q.length < 2) return [];
+  const idx = buildSearchIndex();
+  // Все совпадения по подстроке
+  const matches = idx.filter(it => it.name.toLowerCase().includes(q));
+  // Сортировка: сначала выученные, потом точные начала, потом всё остальное
+  matches.sort((a, b) => {
+    if (a.isLearned !== b.isLearned) return a.isLearned ? -1 : 1;
+    const aStarts = a.name.toLowerCase().startsWith(q);
+    const bStarts = b.name.toLowerCase().startsWith(q);
+    if (aStarts !== bStarts) return aStarts ? -1 : 1;
+    return a.name.length - b.name.length;
+  });
+  // Дедупликация по нормализованному имени
+  const seen = new Set();
+  const out = [];
+  for (const it of matches) {
+    const key = normalizeName(it.name);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+    if (out.length >= 20) break;
+  }
+  return out;
+}
+
+let _searchIdToData = {};
+function onSearchInput(query) {
+  const box = document.getElementById('searchBox');
+  const results = document.getElementById('searchResults');
+  const clearBtn = document.getElementById('searchClear');
+  if (!box || !results) return;
+  if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+  if (!query || query.length < 2) {
+    box.classList.remove('has-results');
+    return;
+  }
+  const items = searchWorks(query);
+  _searchIdToData = {};
+  if (!items.length) {
+    results.innerHTML = '<div class="search-empty">Ничего не нашлось. Попробуй другое слово или добавь работу вручную через «＋ Строка»</div>';
+    box.classList.add('has-results');
+    return;
+  }
+  results.innerHTML = items.map((it, i) => {
+    const sid = 's' + i;
+    _searchIdToData[sid] = it;
+    return `<div class="search-result ${it.isLearned ? 'learned' : ''}" onclick="addFromSearch('${sid}')">
+      <div class="sr-info">
+        <div class="sr-name">${esc(it.name)}</div>
+        <div class="sr-source">${esc(it.source)}</div>
+      </div>
+      <div class="sr-price">${fmt(it.price)}<span class="sr-unit">/${esc(it.unit)}</span></div>
+    </div>`;
+  }).join('');
+  box.classList.add('has-results');
+}
+function addFromSearch(sid) {
+  const it = _searchIdToData[sid];
+  if (!it) return;
+  addWorkToLastSection(it.name, it.unit, it.price);
+  clearSearch();
+}
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  const box = document.getElementById('searchBox');
+  const clearBtn = document.getElementById('searchClear');
+  if (input) input.value = '';
+  if (box) box.classList.remove('has-results');
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+// Закрытие при клике вне поля
+document.addEventListener('click', (e) => {
+  const box = document.getElementById('searchBox');
+  if (box && !box.contains(e.target)) box.classList.remove('has-results');
+});
+// Закрытие по Esc
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const box = document.getElementById('searchBox');
+    if (box && box.classList.contains('has-results')) {
+      box.classList.remove('has-results');
+      const input = document.getElementById('searchInput');
+      if (input) input.blur();
+    }
+  }
+});
 
 // ===== ШАБЛОНЫ РАЗДЕЛОВ =====
 function saveSectionAsTemplate(si) {
