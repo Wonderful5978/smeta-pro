@@ -178,6 +178,7 @@ table.items input.num { font-family: 'JetBrains Mono', monospace; text-align: ri
   color: var(--ink-2); cursor: pointer;
 }
 .preset-subchip:hover { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+.preset-subchip-count { color: var(--ink-3); font-size: 11px; margin-left: 4px; font-weight: 600; }
 .preset-flat { align-self: flex-start; }
 .toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #322a2030; }
 .toggle-row:last-child { border-bottom: none; }
@@ -2220,16 +2221,21 @@ function renderPresets() {
     const emoji = GROUP_EMOJI[prefix] || '📁';
     const isOpen = openedPresetGroup === prefix;
     const arrow = isOpen ? '▾' : '▸';
+    // Считаем ОБЩЕЕ количество работ во всех подразделах группы — это то что реально интересно пользователю.
+    const totalWorks = items.reduce((sum, it) => sum + ((presets[it.key] || []).length), 0);
     return `
       <div class="preset-group ${isOpen ? 'open' : ''}">
         <button class="preset-group-head" onclick="togglePresetGroup('${esc(prefix)}')">
           <span class="pg-emoji">${emoji}</span>
           <span class="pg-name">${esc(prefix)}</span>
-          <span class="pg-count">${items.length}</span>
+          <span class="pg-count" title="${items.length} подразделов · ${totalWorks} работ">${totalWorks}</span>
           <span class="pg-arrow">${arrow}</span>
         </button>
         ${isOpen ? `<div class="preset-group-items">
-          ${items.map(it => `<button class="preset-subchip" onclick="addPresetSection('${esc(it.key).replace(/'/g, "\\'")}')">+ ${esc(it.label)}</button>`).join('')}
+          ${items.map(it => {
+            const cnt = (presets[it.key] || []).length;
+            return `<button class="preset-subchip" onclick="addPresetSection('${esc(it.key).replace(/'/g, "\\'")}')">+ ${esc(it.label)} <span class="preset-subchip-count">${cnt}</span></button>`;
+          }).join('')}
         </div>` : ''}
       </div>
     `;
