@@ -1,0 +1,30 @@
+name: IndexNow ping on deploy
+
+# Срабатывает после каждого push в main → GitHub Pages деплоит → мы сразу сообщаем
+# Bing/Яндексу что страницы обновились. Поисковики переиндексируют за часы, а не недели.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait 90s for GitHub Pages to deploy
+        run: sleep 90
+
+      - name: Submit URLs to IndexNow (Bing + Yandex + Seznam + ...)
+        run: |
+          curl -sS -X POST "https://api.indexnow.org/IndexNow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d '{
+              "host": "kpsmeta.ru",
+              "key": "81e4ebeb0fe443f4b22b9a10cdbd7695",
+              "keyLocation": "https://kpsmeta.ru/81e4ebeb0fe443f4b22b9a10cdbd7695.txt",
+              "urlList": [
+                "https://kpsmeta.ru/",
+                "https://kpsmeta.ru/demo/",
+                "https://kpsmeta.ru/r2026-fkx8m9q/install.html"
+              ]
+            }' \
+            -w "\nHTTP: %{http_code}\n"
